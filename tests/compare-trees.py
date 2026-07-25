@@ -17,7 +17,7 @@ import os
 import re
 import sys
 
-SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling\.(?:sh|ps1|py) v2")
+SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? v2")
 
 
 def snapshot(root):
