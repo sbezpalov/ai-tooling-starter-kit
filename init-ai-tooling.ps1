@@ -75,7 +75,12 @@ function Write-Utf8LfFile {
     if ($parent -and -not (Test-Path $parent)) {
         [System.IO.Directory]::CreateDirectory($parent) | Out-Null
     }
-    $lfContent = $Content -replace "`r`n", "`n"
+    # Нормализуем в LF; непустые файлы — с завершающим \n, как в Python/bash-шаблонах
+    # (here-string в PowerShell не всегда сохраняет newline перед закрывающим '@).
+    $lfContent = $Content -replace "`r`n", "`n" -replace "`r", "`n"
+    if ($lfContent.Length -gt 0 -and -not $lfContent.EndsWith("`n")) {
+        $lfContent += "`n"
+    }
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($Path, $lfContent, $utf8NoBom)
 }
@@ -185,7 +190,7 @@ __DESC__
 ## Раскладка инструментов
 Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling.ps1 v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
 '@
 
 $CursorRules = @'
@@ -351,7 +356,7 @@ Antigravity/Gemini и др.). Остальные файлы — тонкие р�
 Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
 Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
 
-<!-- Инициализировано init-ai-tooling.ps1 v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
 '@
 
 Write-ProjectFile "AGENTS.md" $AgentsMd
