@@ -1,6 +1,9 @@
 # AI Tooling Starter Kit (v2 — AGENTS.md-модель)
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+**Русский** · [English](README.en.md)
 
 Единый каркас конфигов для базового набора AI-инструментов — **Claude, Cursor,
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
@@ -30,22 +33,19 @@ Antigravity/Gemini и другие AGENTS-совместимые инструм�
 
 ## Три версии — один результат
 
-В ките три эквивалентных скрипта: одинаковый набор файлов, одинаковый stdout, те же
-флаги, LF-переводы строк. Различается только строка-подпись генератора в конце
-`AGENTS.md` и `.ai/README.md`.
+В ките три эквивалентных скрипта: **байт-в-байт одинаковый результат**, одинаковый stdout,
+те же флаги, LF-переводы строк на любой ОС.
 
-| Скрипт | Среда | Статус |
-|--------|-------|--------|
-| `init-ai-tooling.sh` | Bash (macOS/Linux) | обкатан автором, проверяется в CI |
-| `init_ai_tooling.py` | Python 3.6+, чистый stdlib (кросс-ОС) | обкатан автором, проверяется в CI |
-| `init-ai-tooling.ps1` | Windows PowerShell 5.1 / PowerShell 7+ (Windows 10/11, без зависимостей) | ⚠️ на живых пользовательских машинах не обкатан — только CI |
+| Скрипт | Среда |
+|--------|-------|
+| `init-ai-tooling.sh` | Bash (macOS/Linux) |
+| `init_ai_tooling.py` | Python 3.6+, чистый stdlib (кросс-ОС) |
+| `init-ai-tooling.ps1` | Windows PowerShell 5.1 / PowerShell 7+ (Windows 10/11, без зависимостей) |
 
-> **Про PowerShell-версию честно.** Автор ей не пользуется; до появления CI она ни разу
-> не запускалась. CI гоняет её на `windows-latest` под встроенным Windows PowerShell 5.1
-> и под PowerShell 7 и сравнивает результат с bash-версией побайтово — но это не то же
-> самое, что живая эксплуатация. Если что-то пойдёт не так — заведите issue.
-> Скрипт ничего не удаляет и без `-Force` не перезаписывает существующие файлы;
-> `-DryRun` показывает план, ничего не записывая. Начните с него.
+PowerShell-версия проверена вручную на Windows 10/11 под встроенным Windows PowerShell 5.1
+и под PowerShell 7, и проверяется в CI на каждый push. Скрипт ничего не удаляет, без
+`-Force` не перезаписывает существующие файлы, а `-DryRun` показывает план, ничего не
+записывая, — с него удобно начинать.
 
 Эквивалентность реализаций проверяется скриптом `tests/compare-trees.py` — он сравнивает
 развёрнутые деревья побайтово (переводы строк намеренно не нормализуются). Запустить локально:
@@ -116,6 +116,12 @@ rm -f .ai/shared-context.md .cursor/README.md .perplexity/context.md \
 rmdir .antigravity/rules 2>/dev/null || true
 init-ai-tooling.sh --name PROJECT --desc "..." --force
 ```
+
+## Как помочь проекту
+
+Issues и pull request'ы приветствуются — см. [CONTRIBUTING.md](CONTRIBUTING.md).
+Главное правило: правку логики нужно вносить **во все три скрипта сразу**, иначе CI
+поймает расхождение. О проблемах безопасности — [SECURITY.md](SECURITY.md).
 
 ## Лицензия
 
