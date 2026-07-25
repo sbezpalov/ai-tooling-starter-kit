@@ -28,30 +28,37 @@ Antigravity/Gemini и другие AGENTS-совместимые инструм�
 
 ## Две версии — один результат
 
-В ките два эквивалентных скрипта (идентичный вывод, те же флаги, LF-переводы строк):
+## Три версии — один результат
 
-- `init-ai-tooling.sh` — bash (macOS/Linux).
-- `init_ai_tooling.py` — Python 3.6+, чистый stdlib (кросс-ОС, в т.ч. **Windows**).
+В ките три эквивалентных скрипта (идентичный вывод, те же флаги, LF-переводы строк):
+
+- `init-ai-tooling.sh` — Bash (macOS/Linux).
+- `init-ai-tooling.ps1` — PowerShell 5.1/7+ (Windows 11/10 нативно, без зависимостей).
+- `init_ai_tooling.py` — Python 3.6+, чистый stdlib (кросс-ОС).
 
 ## Использование
 
 ```bash
-# macOS / Linux
+# macOS / Linux (Bash)
 /path/to/init-ai-tooling.sh --name my-project --desc "Что это за проект"
 
-# Любая ОС (Windows/macOS/Linux), Python без зависимостей
+# Windows 11 / 10 (PowerShell)
+.\init-ai-tooling.ps1 -Name my-project -Desc "Что это за проект"
+# Если запуск скриптов заблокирован политикой безопасности Windows:
+powershell -ExecutionPolicy Bypass -File .\init-ai-tooling.ps1 -Name my-project
+
+# Любая ОС (Python 3, без зависимостей)
 python3 /path/to/init_ai_tooling.py --name my-project --desc "Что это за проект"
-#   Windows PowerShell:  python .\init_ai_tooling.py --name my-project --desc "..."
 ```
 
-| Опция | Значение |
-|-------|----------|
-| `--name ИМЯ` | Имя проекта (по умолчанию — имя папки) |
-| `--desc "ТЕКСТ"` | Короткое описание (одна строка) |
-| `--force` | Перезаписывать существующие файлы |
-| `--dry-run` | Показать план, ничего не писать |
-| `--no-gitignore` | Не трогать `.gitignore` |
-| `-h`, `--help` | Справка |
+| Опция (Bash/Python) | Опция (PowerShell) | Значение |
+|---------------------|--------------------|----------|
+| `--name ИМЯ` | `-Name ИМЯ` | Имя проекта (по умолчанию — имя папки) |
+| `--desc "ТЕКСТ"` | `-Desc "ТЕКСТ"` | Короткое описание (одна строка) |
+| `--force` | `-Force` | Перезаписывать существующие файлы |
+| `--dry-run` | `-DryRun` | Показать план, ничего не писать |
+| `--no-gitignore` | `-NoGitignore` | Не трогать `.gitignore` |
+| `-h`, `--help` | `-?`, `Get-Help` | Справка |
 
 Идемпотентен: без `--force` не трогает существующее, безопасно запускать повторно.
 
