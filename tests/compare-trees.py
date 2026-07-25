@@ -20,6 +20,15 @@ import sys
 SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? v2")
 
 
+def configure_stdio():
+    """UTF-8 stdout/stderr: иначе на Windows (cp1252) print с кириллицей падает."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
 def snapshot(root):
     """{относительный путь -> содержимое} для всех файлов дерева."""
     files = {}
@@ -62,4 +71,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    configure_stdio()
     sys.exit(main(sys.argv))
+
