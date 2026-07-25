@@ -71,6 +71,11 @@ jobs:
     name: powershell 5.1 (windows)
     runs-on: windows-latest
     needs: posix
+    # GHA пишет step-скрипт в ANSI для Windows PowerShell 5.1 → кириллица в
+    # throw ломает парсер. Python на runner’е по умолчанию cp1252.
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -102,7 +107,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
           Set-Location "$env:RUNNER_TEMP\dry"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
-          if (Get-ChildItem -Force) { throw "dry-run создал файлы!" }
+          # ASCII only: PS 5.1 + GHA step encoding cannot parse Cyrillic in throw.
+          if (Get-ChildItem -Force) { throw "dry-run created files!" }
 
       - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
         shell: powershell
@@ -134,6 +140,9 @@ jobs:
     name: powershell 7+ (windows)
     runs-on: windows-latest
     needs: posix
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -148,7 +157,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
           Set-Location "$env:RUNNER_TEMP\dry"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
-          if (Get-ChildItem -Force) { throw "dry-run создал файлы!" }
+          if (Get-ChildItem -Force) { throw "dry-run created files!" }
 
       - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
         shell: pwsh
