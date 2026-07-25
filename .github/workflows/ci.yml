@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 # Смысл этого пайплайна: три реализации (bash / PowerShell / Python) обязаны давать
-# байт-в-байт одинаковый результат. Расхождение = баг. Windows-джоба гоняет .ps1
-# на настоящей Windows — и под встроенным Windows PowerShell 5.1, и под PowerShell 7.
+# байт-в-байт одинаковый результат. Расхождение = баг. Две Windows-джобы гоняют .ps1
+# на настоящей Windows — под встроенным Windows PowerShell 5.1 и под PowerShell 7+.
 
 jobs:
   posix:
@@ -65,16 +65,12 @@ jobs:
           path: ${{ runner.temp }}/tree-bash
           include-hidden-files: true
 
-  windows:
-    name: powershell (${{ matrix.shell }})
+  # Два отдельных job’а вместо matrix.shell: step-level shell: ${{ matrix.* }}
+  # GitHub Actions не резолвит (Unrecognized named-value: matrix) → startup_failure.
+  windows-ps51:
+    name: powershell 5.1 (windows)
     runs-on: windows-latest
     needs: posix
-    strategy:
-      fail-fast: false
-      matrix:
-        # powershell = встроенный Windows PowerShell 5.1 (то, что есть у пользователя
-        # из коробки на Windows 10/11); pwsh = PowerShell 7+.
-        shell: [powershell, pwsh]
     steps:
       - uses: actions/checkout@v4
 
@@ -101,7 +97,7 @@ jobs:
           }
 
       - name: dry-run не должен ничего писать
-        shell: ${{ matrix.shell }}
+        shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
           Set-Location "$env:RUNNER_TEMP\dry"
@@ -109,7 +105,7 @@ jobs:
           if (Get-ChildItem -Force) { throw "dry-run создал файлы!" }
 
       - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
-        shell: ${{ matrix.shell }}
+        shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-ps" | Out-Null
           Set-Location "$env:RUNNER_TEMP\tree-ps"
@@ -120,14 +116,60 @@ jobs:
         run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
       - name: идемпотентность
-        shell: ${{ matrix.shell }}
+        shell: powershell
         run: |
           Set-Location "$env:RUNNER_TEMP\tree-ps"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
           python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
       - name: settings.json — валидный JSON даже при кавычках в имени
-        shell: ${{ matrix.shell }}
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\json" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\json"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name 'my "cool" a\b proj' | Out-Null
+          python -c "import json;json.load(open('.claude/settings.json'))"
+
+  windows-pwsh:
+    name: powershell 7+ (windows)
+    runs-on: windows-latest
+    needs: posix
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-bash
+          path: ${{ runner.temp }}/tree-bash
+
+      - name: dry-run не должен ничего писать
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\dry"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
+          if (Get-ChildItem -Force) { throw "dry-run создал файлы!" }
+
+      - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\tree-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
+
+      - name: powershell == bash
+        shell: pwsh
+        run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
+
+      - name: идемпотентность
+        shell: pwsh
+        run: |
+          Set-Location "$env:RUNNER_TEMP\tree-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
+          python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
+
+      - name: settings.json — валидный JSON даже при кавычках в имени
+        shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\json" | Out-Null
           Set-Location "$env:RUNNER_TEMP\json"
