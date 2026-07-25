@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Смысл этого пайплайна: три реализации (bash / PowerShell / Python) обязаны давать
+# байт-в-байт одинаковый результат. Расхождение = баг. Windows-джоба гоняет .ps1
+# на настоящей Windows — и под встроенным Windows PowerShell 5.1, и под PowerShell 7.
+
+jobs:
+  posix:
+    name: bash + python (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck init-ai-tooling.sh
+
+      - name: синтаксис python
+        run: python3 -m py_compile init_ai_tooling.py tests/compare-trees.py
+
+      - name: dry-run не должен ничего писать
+        run: |
+          mkdir -p "$RUNNER_TEMP/dry" && cd "$RUNNER_TEMP/dry"
+          bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI" --dry-run
+          python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI" --dry-run
+          test -z "$(ls -A .)" || { echo "dry-run создал файлы!"; ls -Ra .; exit 1; }
+
+      - name: развернуть bash-версией
+        run: |
+          mkdir -p "$RUNNER_TEMP/tree-bash" && cd "$RUNNER_TEMP/tree-bash"
+          bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI"
+
+      - name: развернуть python-версией
+        run: |
+          mkdir -p "$RUNNER_TEMP/tree-py" && cd "$RUNNER_TEMP/tree-py"
+          python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI"
+
+      - name: bash == python
+        run: python3 tests/compare-trees.py "$RUNNER_TEMP/tree-bash" "$RUNNER_TEMP/tree-py"
+
+      - name: идемпотентность (повторный запуск ничего не меняет)
+        run: |
+          cd "$RUNNER_TEMP/tree-bash"
+          bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI"
+          python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI"
+          python3 "$GITHUB_WORKSPACE/tests/compare-trees.py" "$RUNNER_TEMP/tree-bash" "$RUNNER_TEMP/tree-py"
+
+      - name: settings.json — валидный JSON даже при кавычках в имени
+        run: |
+          mkdir -p "$RUNNER_TEMP/json" && cd "$RUNNER_TEMP/json"
+          bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name 'my "cool" a\b proj' >/dev/null
+          python3 -c "import json;json.load(open('.claude/settings.json'))"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tree-bash
+          path: ${{ runner.temp }}/tree-bash
+          include-hidden-files: true
+
+  windows:
+    name: powershell (${{ matrix.shell }})
+    runs-on: windows-latest
+    needs: posix
+    strategy:
+      fail-fast: false
+      matrix:
+        # powershell = встроенный Windows PowerShell 5.1 (то, что есть у пользователя
+        # из коробки на Windows 10/11); pwsh = PowerShell 7+.
+        shell: [powershell, pwsh]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-bash
+          path: ${{ runner.temp }}/tree-bash
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
+          $all = Invoke-ScriptAnalyzer -Path ./init-ai-tooling.ps1
+          $all | Format-Table -AutoSize | Out-String | Write-Host
+          $errors = @($all | Where-Object Severity -eq 'Error')
+          if ($errors.Count) { throw "PSScriptAnalyzer: $($errors.Count) ошибок" }
+
+      - name: .ps1 обязан быть в UTF-8 с BOM
+        shell: pwsh
+        run: |
+          $b = [System.IO.File]::ReadAllBytes("./init-ai-tooling.ps1")
+          if ($b[0] -ne 0xEF -or $b[1] -ne 0xBB -or $b[2] -ne 0xBF) {
+            throw "Нет BOM: Windows PowerShell 5.1 прочитает файл в ANSI и сломает кириллицу."
+          }
+
+      - name: dry-run не должен ничего писать
+        shell: ${{ matrix.shell }}
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\dry"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
+          if (Get-ChildItem -Force) { throw "dry-run создал файлы!" }
+
+      - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
+        shell: ${{ matrix.shell }}
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\tree-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
+
+      - name: powershell == bash
+        shell: pwsh
+        run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
+
+      - name: идемпотентность
+        shell: ${{ matrix.shell }}
+        run: |
+          Set-Location "$env:RUNNER_TEMP\tree-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
+          python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
+
+      - name: settings.json — валидный JSON даже при кавычках в имени
+        shell: ${{ matrix.shell }}
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\json" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\json"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name 'my "cool" a\b proj' | Out-Null
+          python -c "import json;json.load(open('.claude/settings.json'))"

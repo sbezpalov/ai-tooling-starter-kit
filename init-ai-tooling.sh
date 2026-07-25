@@ -71,12 +71,19 @@ write_file() {
 escape_sed() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
+# Экранирование для подстановки внутрь JSON: кавычки и обратные слэши в имени проекта
+# иначе сделали бы .claude/settings.json невалидным.
+escape_json() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
 render() {
-  local safe_name safe_desc safe_date
+  local safe_name safe_desc safe_date safe_name_json
   safe_name="$(escape_sed "$NAME")"
   safe_desc="$(escape_sed "$DESC")"
   safe_date="$(escape_sed "$DATE")"
-  sed -e "s|__NAME__|${safe_name}|g" -e "s|__DESC__|${safe_desc}|g" -e "s|__DATE__|${safe_date}|g"
+  safe_name_json="$(escape_sed "$(escape_json "$NAME")")"
+  sed -e "s|__NAME_JSON__|${safe_name_json}|g" -e "s|__NAME__|${safe_name}|g" \
+      -e "s|__DESC__|${safe_desc}|g" -e "s|__DATE__|${safe_date}|g"
 }
 
 # ---------- каталоги artifacts + .gitkeep ----------
@@ -224,8 +231,21 @@ TPL
 render <<'TPL' | write_file ".claude/settings.json"
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Командные настройки Claude Code для __NAME__. Личные оверрайды — в settings.local.json (не коммитить).",
-  "permissions": { "allow": ["Read", "Edit"], "deny": [] }
+  "//": "Командные настройки Claude Code для __NAME_JSON__. Личные оверрайды — в settings.local.json (не коммитить).",
+  "permissions": {
+    "allow": ["Read", "Edit"],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**.pem)",
+      "Read(**.key)",
+      "Read(**/.ssh/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.kube/**)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)"
+    ]
+  }
 }
 TPL
 
@@ -321,6 +341,10 @@ if [ "$NO_GITIGNORE" != "1" ]; then
       printf '%s\n' "$line" >> .gitignore
     fi
   }
+  ensure_add_ignore ".env"
+  ensure_add_ignore ".env.*"
+  ensure_add_ignore "!.env.example"
+  ensure_add_ignore "*.local"
   ensure_add_ignore ".claude/settings.local.json"
   ensure_add_ignore ".DS_Store"
 fi

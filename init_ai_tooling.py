@@ -168,8 +168,21 @@ _add(".claude/README.md", """\
 _add(".claude/settings.json", """\
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Командные настройки Claude Code для __NAME__. Личные оверрайды — в settings.local.json (не коммитить).",
-  "permissions": { "allow": ["Read", "Edit"], "deny": [] }
+  "//": "Командные настройки Claude Code для __NAME_JSON__. Личные оверрайды — в settings.local.json (не коммитить).",
+  "permissions": {
+    "allow": ["Read", "Edit"],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**.pem)",
+      "Read(**.key)",
+      "Read(**/.ssh/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.kube/**)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)"
+    ]
+  }
 }
 """)
 
@@ -243,7 +256,14 @@ Antigravity/Gemini и др.). Остальные файлы — тонкие р�
 <!-- Инициализировано init_ai_tooling.py v2 (__DATE__). -->
 """)
 
-GITIGNORE_LINES = [".claude/settings.local.json", ".DS_Store"]
+GITIGNORE_LINES = [
+    ".env",
+    ".env.*",
+    "!.env.example",
+    "*.local",
+    ".claude/settings.local.json",
+    ".DS_Store",
+]
 
 
 def say(msg=""):
@@ -251,7 +271,11 @@ def say(msg=""):
 
 
 def render(text, name, desc, date):
-    return (text.replace("__NAME__", name)
+    # __NAME_JSON__ — имя, экранированное для подстановки внутрь JSON: кавычки и
+    # обратные слэши иначе сделали бы .claude/settings.json невалидным.
+    name_json = name.replace("\\", "\\\\").replace('"', '\\"')
+    return (text.replace("__NAME_JSON__", name_json)
+                .replace("__NAME__", name)
                 .replace("__DESC__", desc)
                 .replace("__DATE__", date))
 
