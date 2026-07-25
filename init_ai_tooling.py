@@ -16,6 +16,7 @@
 import argparse
 import datetime
 import os
+from pathlib import Path
 import sys
 
 # ---------------------------------------------------------------------------
@@ -279,36 +280,44 @@ def main(argv=None):
     date = datetime.date.today().isoformat()
     force, dry = args.force, args.dry_run
 
-    def ensure_dir(d):
+    def ensure_dir(d: Path):
         if dry:
-            say("mkdir  " + d)
+            say("mkdir  " + str(d).replace(os.sep, "/"))
         else:
-            os.makedirs(d, exist_ok=True)
+            d.mkdir(parents=True, exist_ok=True)
 
-    def gitkeep(d):
-        ensure_dir(d)
-        f = os.path.join(d, ".gitkeep")
-        if os.path.exists(f) and not force:
+    def gitkeep(d_str: str):
+        p = Path(d_str)
+        ensure_dir(p)
+        f = p / ".gitkeep"
+        if f.exists() and not force:
             return
         if dry:
-            say("touch  " + f.replace(os.sep, "/"))
+            say("touch  " + str(f).replace(os.sep, "/"))
             return
-        open(f, "w").close()
+        try:
+            f.touch()
+        except OSError as e:
+            say("error  не удалось создать %s: %s" % (f, e))
+            sys.exit(1)
 
-    def write_file(path, content):
-        if os.path.exists(path) and not force:
-            say("skip   " + path + " (уже есть)")
+    def write_file(path_str: str, content: str):
+        p = Path(path_str)
+        if p.exists() and not force:
+            say("skip   " + path_str + " (уже есть)")
             return
         if dry:
-            say("write  " + path)
+            say("write  " + path_str)
             return
-        parent = os.path.dirname(path)
-        if parent:
-            os.makedirs(parent, exist_ok=True)
-        # newline="\n" — LF на всех ОС (в т.ч. Windows), как в bash-версии
-        with open(path, "w", encoding="utf-8", newline="\n") as fh:
-            fh.write(content)
-        say("write  " + path)
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            # newline="\n" — LF на всех ОС (в т.ч. Windows), как в bash-версии
+            with open(p, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(content)
+            say("write  " + path_str)
+        except OSError as e:
+            say("error  не удалось записать %s: %s" % (path_str, e))
+            sys.exit(1)
 
     # 1) каталоги artifacts + .gitkeep
     for d in GITKEEP_DIRS:
@@ -320,17 +329,35 @@ def main(argv=None):
 
     # 3) .gitignore
     if not args.no_gitignore:
+        gitignore_path = Path(".gitignore")
+        existing_lines = []
+        if gitignore_path.exists():
+            try:
+                with open(gitignore_path, "r", encoding="utf-8") as fh:
+                    existing_lines = fh.read().splitlines()
+            except OSError as e:
+                say("warning не удалось прочитать .gitignore: %s" % e)
+
         for line in GITIGNORE_LINES:
-            if dry:
-                say("gitignore += " + line)
-                continue
-            existing = []
-            if os.path.exists(".gitignore"):
-                with open(".gitignore", "r", encoding="utf-8", newline="\n") as fh:
-                    existing = fh.read().splitlines()
-            if line not in existing:
-                with open(".gitignore", "a", encoding="utf-8", newline="\n") as fh:
-                    fh.write(line + "\n")
+            if line not in existing_lines:
+                if dry:
+                    say("gitignore += " + line)
+                    continue
+                try:
+                    needs_newline = False
+                    if gitignore_path.exists() and gitignore_path.stat().st_size > 0:
+                        with open(gitignore_path, "rb") as fh:
+                            fh.seek(-1, os.SEEK_END)
+                            if fh.read(1) != b"\n":
+                                needs_newline = True
+                    with open(gitignore_path, "a", encoding="utf-8", newline="\n") as fh:
+                        if needs_newline:
+                            fh.write("\n")
+                            needs_newline = False
+                        fh.write(line + "\n")
+                    existing_lines.append(line)
+                except OSError as e:
+                    say("warning не удалось обновить .gitignore: %s" % e)
 
     say("")
     say("Готово (v2): каркас AGENTS.md-модели развёрнут для «%s»." % name)

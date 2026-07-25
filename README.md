@@ -25,7 +25,6 @@ Antigravity/Gemini и другие AGENTS-совместимые инструм�
 
 > Почему AGENTS.md, а не `.ai/shared-context.md` (как в v1): AGENTS — растущий кросс-
 > инструментальный стандарт, читается инструментами напрямую → меньше косвенности.
-> Модель подсмотрена у проекта `yaponskaya-kosmetika.com`.
 
 ## Две версии — один результат
 
@@ -61,7 +60,7 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "Что это за
 ```bash
 install -m755 init-ai-tooling.sh ~/bin/ai-init      # если ~/bin в PATH
 # либо алиас:
-alias ai-init="/Users/sdc/Claude/Projects/Hub.MSCS.ru/ai-tooling-starter-kit/init-ai-tooling.sh"
+alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 ```
 
 ## После запуска
@@ -76,7 +75,6 @@ alias ai-init="/Users/sdc/Claude/Projects/Hub.MSCS.ru/ai-tooling-starter-kit/ini
 раскладкой (свои `.cursor/rules/*.mdc`, `AGENTS.md`, скиллы) может создать частичное
 дублирование (напр. свой `00-project.mdc` рядом с генерик `000-project.mdc`). Такие
 проекты стоит свести вручную: сделать их контент основой `AGENTS.md`, убрать дубли.
-Пример правильного свода — `yaponskaya-kosmetika.com`.
 
 ## Миграция v1 → v2
 
@@ -92,4 +90,4 @@ init-ai-tooling.sh --name PROJECT --desc "..." --force
 ```
 
 ---
-*Базовый тулинг Сергея. v2 проверено: dry-run, реальный прогон, идемпотентность, миграция 8 проектов.*
+*v2 проверено: dry-run, реальный прогон, идемпотентность.*

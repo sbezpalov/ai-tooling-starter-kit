@@ -52,7 +52,7 @@ done
 
 [ -n "$NAME" ] || NAME="$(basename "$(pwd)")"
 [ -n "$DESC" ] || DESC="TODO: короткое описание проекта"
-DATE="$(date +%F)"
+DATE="$(date +%Y-%m-%d)"
 
 say() { printf '%s\n' "$*"; }
 ensure_dir() { [ "$DRYRUN" = "1" ] && { say "mkdir  $1"; return 0; }; mkdir -p "$1"; }
@@ -68,7 +68,16 @@ write_file() {
   if [ "$DRYRUN" = "1" ]; then say "write  $path"; cat >/dev/null; return 0; fi
   mkdir -p "$(dirname "$path")"; cat > "$path"; say "write  $path"
 }
-render() { sed -e "s|__NAME__|${NAME}|g" -e "s|__DESC__|${DESC}|g" -e "s|__DATE__|${DATE}|g"; }
+escape_sed() {
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+render() {
+  local safe_name safe_desc safe_date
+  safe_name="$(escape_sed "$NAME")"
+  safe_desc="$(escape_sed "$DESC")"
+  safe_date="$(escape_sed "$DATE")"
+  sed -e "s|__NAME__|${safe_name}|g" -e "s|__DESC__|${safe_desc}|g" -e "s|__DATE__|${safe_date}|g"
+}
 
 # ---------- каталоги artifacts + .gitkeep ----------
 for d in .ai/artifacts .claude/commands .claude/agents .claude/artifacts \
@@ -304,7 +313,13 @@ if [ "$NO_GITIGNORE" != "1" ]; then
   ensure_add_ignore() {
     local line="$1"
     [ "$DRYRUN" = "1" ] && { say "gitignore += $line"; return 0; }
-    touch .gitignore; grep -qxF "$line" .gitignore || printf '%s\n' "$line" >> .gitignore
+    touch .gitignore
+    if ! grep -qxF "$line" .gitignore; then
+      if [ -s .gitignore ] && [ -n "$(tail -c1 .gitignore 2>/dev/null)" ]; then
+        printf '\n' >> .gitignore
+      fi
+      printf '%s\n' "$line" >> .gitignore
+    fi
   }
   ensure_add_ignore ".claude/settings.local.json"
   ensure_add_ignore ".DS_Store"
