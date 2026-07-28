@@ -1,6 +1,7 @@
-# AI Tooling Starter Kit (v2 — AGENTS.md-модель)
+# AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **Русский** · [English](README.en.md)
@@ -9,7 +10,10 @@
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-## Модель (v2)
+Текущий релиз: **1.0.0** (см. [CHANGELOG.md](CHANGELOG.md)). «Модель v2» ниже —
+название архитектурного поколения (AGENTS.md), не semver.
+
+## Модель (v2 — AGENTS.md)
 
 **`AGENTS.md` = единый источник истины.** Его читают нативно Cursor, Google
 Antigravity/Gemini и другие AGENTS-совместимые инструменты — поэтому контекст не нужно
@@ -79,6 +83,7 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "Что это за
 | `--force` | `-Force` | Перезаписывать существующие файлы |
 | `--dry-run` | `-DryRun` | Показать план, ничего не писать |
 | `--no-gitignore` | `-NoGitignore` | Не трогать `.gitignore` |
+| `--version` | `-Version` | Показать версию скрипта и выйти |
 | `-h`, `--help` | `-?`, `Get-Help` | Справка |
 
 Идемпотентен: без `--force` не трогает существующее, безопасно запускать повторно.
@@ -128,5 +133,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 Распространяется под свободной лицензией [MIT License](LICENSE). Вы можете свободно использовать, модифицировать и встраивать данный стартер-кит в любые коммерческие и открытые проекты.
 
 ---
-*v2 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое совпадение
-результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*
+*Релиз 1.0.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*

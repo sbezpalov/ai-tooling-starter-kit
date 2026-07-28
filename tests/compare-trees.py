@@ -4,7 +4,7 @@
 
 Три скрипта (bash / PowerShell / Python) обязаны давать идентичный результат.
 Единственное допустимое расхождение — строка-подпись генератора в конце
-AGENTS.md и .ai/README.md, она нормализуется.
+AGENTS.md и .ai/README.md (semver релиза), она нормализуется.
 
 Переводы строк НЕ нормализуются намеренно: все три реализации обязаны писать LF
 на любой ОС, и расхождение здесь — это баг, который тест должен ловить.
@@ -17,7 +17,7 @@ import os
 import re
 import sys
 
-SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? v2")
+SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? \d+\.\d+\.\d+")
 
 
 def configure_stdio():
@@ -38,7 +38,7 @@ def snapshot(root):
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
             with open(full, "rb") as fh:
-                files[rel] = SIGNATURE.sub(b"init-ai-tooling v2", fh.read())
+                files[rel] = SIGNATURE.sub(b"init-ai-tooling VERSION", fh.read())
     return files
 
 

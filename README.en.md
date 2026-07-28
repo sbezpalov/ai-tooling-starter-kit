@@ -1,6 +1,7 @@
-# AI Tooling Starter Kit (v2 — the AGENTS.md model)
+# AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [Русский](README.md) · **English**
@@ -9,10 +10,13 @@ One command that scaffolds a consistent config layout for the AI tools you actua
 **Claude, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
+Current release: **1.0.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+the architectural generation (AGENTS.md), not the semver.
+
 > The generated files are in Russian, matching this kit's origin. Templates live inline
 > in each script — search for `__NAME__` and translate them if you need English output.
 
-## The model (v2)
+## The model (v2 — AGENTS.md)
 
 **`AGENTS.md` is the single source of truth.** Cursor, Google Antigravity/Gemini and other
 AGENTS-aware tools read it natively, so context needs no duplication and there is no
@@ -81,6 +85,7 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "What this project 
 | `--force` | `-Force` | Overwrite existing files |
 | `--dry-run` | `-DryRun` | Print the plan, write nothing |
 | `--no-gitignore` | `-NoGitignore` | Leave `.gitignore` alone |
+| `--version` | `-Version` | Print script version and exit |
 | `-h`, `--help` | `-?`, `Get-Help` | Help |
 
 Idempotent: without `--force` nothing existing is touched, so re-running is safe.
@@ -133,5 +138,5 @@ catch the divergence. For security reports see [SECURITY.md](SECURITY.md).
 projects freely.
 
 ---
-*v2 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte equality across
-all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*
+*Release 1.0.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*
