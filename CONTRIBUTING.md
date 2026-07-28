@@ -1,81 +1,80 @@
-# Как помочь проекту
+# Contributing
 
-Спасибо за интерес. Проект маленький, правила тоже короткие.
+Thanks for your interest. The project is small; the rules are short.
 
-*(English speakers: this file is Russian-only for now; the rules below are mirrored in
-`README.en.md` in condensed form. Feel free to open issues and PRs in English.)*
+Russian translation: [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md).
 
-## Главное правило
+## The one rule
 
-**Три реализации обязаны оставаться эквивалентными.** Любое изменение поведения —
-новый шаблон, новый флаг, правка текста в генерируемых файлах — вносится
-**одновременно во все три скрипта**:
+**All three implementations must stay equivalent.** Any behaviour change — new template,
+new flag, edit to generated text — lands in **all three scripts at once**:
 
 - `init-ai-tooling.sh`
 - `init_ai_tooling.py`
 - `init-ai-tooling.ps1`
 
-CI сравнивает развёрнутые деревья побайтово и упадёт, если хоть один символ разошёлся.
+CI compares the scaffolded trees byte for byte and fails if a single character diverges.
 
-При бампе релиза синхронно обновите `VERSION` / `$ToolVersion` во всех трёх скриптах,
-подписи/справку (они читают константу), `CHANGELOG.md` и badge версии в README.
+When bumping a release, update `VERSION` / `$ToolVersion` in all three scripts,
+signatures/help (they read the constant), `CHANGELOG.md` (+ `CHANGELOG.ru.md` if present),
+and the version badge in both READMEs.
 
-Проверить локально до пуша:
+Check locally before pushing:
 
 ```bash
 mkdir -p /tmp/a /tmp/b
-(cd /tmp/a && ./init-ai-tooling.sh --name demo --desc "Тест")
-(cd /tmp/b && python3 ./init_ai_tooling.py --name demo --desc "Тест")
-python3 tests/compare-trees.py /tmp/a /tmp/b     # ожидается "Деревья идентичны"
+(cd /tmp/a && ./init-ai-tooling.sh --name demo --desc "Test")
+(cd /tmp/b && python3 ./init_ai_tooling.py --name demo --desc "Test")
+python3 tests/compare-trees.py /tmp/a /tmp/b     # expect "Trees are identical"
 ```
 
-PowerShell-версию без Windows локально не проверить — её возьмёт на себя CI
-(`windows-latest`, Windows PowerShell 5.1 и PowerShell 7).
+The PowerShell script cannot be verified locally without Windows — CI covers it
+(`windows-latest`, Windows PowerShell 5.1 and PowerShell 7).
 
-## Грабли, на которые уже наступали
+## Pitfalls we have already hit
 
-Эти вещи легко сломать заново, поэтому они вынесены отдельно.
+These are easy to break again, so they are called out explicitly.
 
-**PowerShell: только литеральные here-string.** Шаблоны объявляются как `@'…'@`, а не
-`@"…"@`. В раскрываемой here-string обратный апостроф — escape-символ: markdown-бэктики
-из шаблонов исчезнут, а `` `a `` превратится в BEL (0x07) прямо посреди файла.
+**PowerShell: literal here-strings only.** Templates use `@'…'@`, not `@"…"@`. In an
+expandable here-string the backtick is an escape: markdown backticks vanish, and `` `a ``
+becomes BEL (0x07) mid-file.
 
-**PowerShell: файл обязан быть в UTF-8 с BOM.** Без BOM Windows PowerShell 5.1 читает
-`.ps1` в ANSI-кодовой странице; кириллица распадается на байты, часть которых
-декодируется в типографские кавычки `“` `”`, а PowerShell считает их разделителями
-строк — файл перестаёт парситься целиком. CI проверяет наличие BOM отдельным шагом.
+**PowerShell: the file must be UTF-8 with BOM.** Without a BOM, Windows PowerShell 5.1
+reads `.ps1` as the ANSI code page; non-ASCII bytes can decode into typographic quotes
+`“` `”`, which PowerShell treats as string delimiters — the file stops parsing. CI checks
+for the BOM in a dedicated step.
 
-**PowerShell: here-string не отдаёт завершающий перевод строки** перед закрывающим `'@`.
-За это отвечает `Write-Utf8LfFile` — она дописывает `\n` непустому содержимому.
+**PowerShell: a here-string may omit the trailing newline** before the closing `'@`.
+`Write-Utf8LfFile` appends `\n` to non-empty content.
 
-**PowerShell: `.NET` не знает про `Set-Location`.** `[System.IO.*]` резолвит относительные
-пути через `[Environment]::CurrentDirectory`, который не синхронизирован с расположением
-PowerShell. Скрипт синхронизирует его в начале и отказывается работать вне
-FileSystem-провайдера. Не убирайте эти проверки.
+**PowerShell: `.NET` does not follow `Set-Location`.** `[System.IO.*]` resolves relative
+paths via `[Environment]::CurrentDirectory`, which is not synced with the PowerShell
+location. The script syncs it at startup and refuses to run outside a FileSystem
+provider. Do not remove those checks.
 
-**Подстановка в JSON.** Имя проекта попадает в `.claude/settings.json`, поэтому для него
-есть отдельный плейсхолдер `__NAME_JSON__` с экранированием `\` и `"`. Обычный `__NAME__`
-внутрь JSON подставлять нельзя.
+**JSON substitution.** The project name lands in `.claude/settings.json`, so it has a
+separate `__NAME_JSON__` placeholder with `\` and `"` escaping. Do not put plain
+`__NAME__` inside JSON.
 
-**PowerShell: `-replace` — это регулярка.** Правая часть трактует `$1`, `$&`, `$$` как
-подстановки, поэтому для подстановки значений используется `.Replace()`.
+**PowerShell: `-replace` is regex.** The replacement side treats `$1`, `$&`, `$$` as
+backreferences, so value substitution uses `.Replace()`.
 
-**Вывод — всегда LF.** На всех ОС, включая Windows. `tests/compare-trees.py` намеренно
-не нормализует переводы строк, чтобы CRLF считался ошибкой.
+**Output is always LF.** On every OS, including Windows. `tests/compare-trees.py`
+deliberately does not normalize line endings, so CRLF is a failure.
 
-## Стиль
+## Style
 
-- Скрипты самодостаточны: шаблоны лежат внутри, внешних зависимостей нет и не должно быть.
-- Идемпотентность: без `--force` / `-Force` существующие файлы не трогаются.
-- Ничего не удалять. Скрипт только создаёт файлы и дописывает строки в `.gitignore`.
-- `bash` проходит `shellcheck`, `.ps1` — `PSScriptAnalyzer` без ошибок уровня Error.
-- Комментарии и сообщения — на русском, чтобы не смешивать языки внутри файла.
+- Scripts are self-contained: templates live inline; no external dependencies.
+- Idempotent: without `--force` / `-Force`, existing files are left alone.
+- Never delete. The script only creates files and appends lines to `.gitignore`.
+- `bash` passes `shellcheck`; `.ps1` passes `PSScriptAnalyzer` with no Error-level findings.
+- Comments and messages are **English** so the three scripts stay one language.
 
 ## Pull request
 
-1. Ветка от `main`.
-2. Изменения во всех трёх скриптах + локальная проверка эквивалентности.
-3. Если поведение изменилось — обновите оба README (`README.md` и `README.en.md`).
-4. В описании PR: что меняется и зачем.
+1. Branch from `main`.
+2. Change all three scripts + local equivalence check.
+3. If behaviour changed — update both READMEs (`README.md` and `README.ru.md`).
+4. PR description: what changes and why.
 
-Зелёный CI обязателен для мерджа.
+Green CI is required to merge.

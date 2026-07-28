@@ -1,7 +1,7 @@
 # CLAUDE.md — ai-tooling-starter-kit
 
-**Источник истины — [`AGENTS.md`](AGENTS.md). Прочитай его первым.** Ниже — только Claude-специфика.
+**Source of truth — [`AGENTS.md`](AGENTS.md). Read it first.** Below — Claude-specific only.
 
-## Директории Claude
-- `.claude/commands/` — slash-команды; `.claude/agents/` — субагенты; `.claude/artifacts/` — артефакты.
-- Командные настройки — `.claude/settings.json`; личные — `.claude/settings.local.json` (не коммить).
+## Claude directories
+- `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
+- Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).

@@ -1,54 +1,52 @@
-# Безопасность
+# Security
 
-*(English: to report a vulnerability, use GitHub's "Report a vulnerability" button under
-the Security tab, or open a regular issue for anything non-sensitive. Details below.)*
+Russian translation: [SECURITY.ru.md](SECURITY.ru.md).
 
-## Что делает этот проект
+## What this project does
 
-Стартер-кит состоит из трёх скриптов, которые **создают текстовые файлы конфигурации**
-в текущем каталоге. Он не скачивает ничего из сети, не выполняет сторонний код, не имеет
-зависимостей и ничего не удаляет. Единственная модификация существующего файла —
-дописывание строк в `.gitignore` (отключается флагом `--no-gitignore` / `-NoGitignore`).
+The starter kit is three scripts that **create text configuration files** in the current
+directory. It downloads nothing from the network, executes no third-party code, has no
+dependencies, and deletes nothing. The only modification of an existing file is appending
+lines to `.gitignore` (disabled with `--no-gitignore` / `-NoGitignore`).
 
-Перед первым запуском в незнакомом проекте используйте `--dry-run` / `-DryRun`: скрипт
-покажет полный план и ничего не запишет.
+Before the first run in an unfamiliar project, use `--dry-run` / `-DryRun`: the script
+prints the full plan and writes nothing.
 
-## Что кит настраивает в вашу пользу
+## What the kit configures for you
 
-- В `.gitignore` добавляются `.env`, `.env.*`, `!.env.example`, `*.local` — чтобы секреты
-  не уехали в коммит.
-- В `.claude/settings.json` прописаны `deny`-правила: чтение `.env`, `*.pem`, `*.key`,
-  `~/.ssh`, `~/.aws`, `~/.kube`, а также `rm -rf` и `git push --force`.
-- В `.cursorignore` исключены секреты и локальные конфиги из индексации.
-- Генерируемый `AGENTS.md` содержит раздел «Безопасность (NEVER)» — его стоит дополнить
-  правилами вашего проекта.
+- `.gitignore` gains `.env`, `.env.*`, `!.env.example`, `*.local` — so secrets stay out of
+  commits.
+- `.claude/settings.json` includes `deny` rules: reading `.env`, `*.pem`, `*.key`,
+  `~/.ssh`, `~/.aws`, `~/.kube`, plus `rm -rf` and `git push --force`.
+- `.cursorignore` excludes secrets and local configs from indexing.
+- Generated `AGENTS.md` includes a “Security (NEVER)” section — extend it with your
+  project rules.
 
-Это разумные значения по умолчанию, а не полноценная модель угроз. Проверьте их
-соответствие вашим требованиям и дополните.
+These are sensible defaults, not a full threat model. Review them against your
+requirements and extend as needed.
 
-## Как сообщить о проблеме
+## How to report a problem
 
-Если вы нашли уязвимость — например, способ заставить скрипт записать файл за пределами
-текущего каталога, выполнить произвольную команду через аргументы или испортить
-существующие данные пользователя:
+If you find a vulnerability — for example a way to make the script write outside the
+current directory, run an arbitrary command via arguments, or corrupt the user's existing
+data:
 
-1. Откройте вкладку **Security** репозитория и нажмите **Report a vulnerability**
-   (приватный канал GitHub Security Advisories).
-2. Если такой возможности нет — напишите на sergey@bezpalov.com с темой,
-   начинающейся с `SECURITY:`.
+1. Open the repository **Security** tab and click **Report a vulnerability**
+   (private GitHub Security Advisories channel).
+2. If that is unavailable — email sergey@bezpalov.com with a subject starting with
+   `SECURITY:`.
 
-Пожалуйста, **не открывайте публичный issue** для эксплуатируемых проблем, пока они не
-исправлены.
+Please **do not open a public issue** for exploitable problems until they are fixed.
 
-Ожидаемое время первичного ответа — несколько дней. Проект развивается силами одного
-человека, поэтому строгих SLA нет.
+Expect an initial reply within a few days. The project is maintained by one person, so
+there is no formal SLA.
 
-## Что не считается уязвимостью
+## What is not a vulnerability
 
-- Запуск скрипта не в том каталоге по невнимательности (для этого есть `--dry-run`).
-- Перезапись файлов при явно указанном `--force` / `-Force`.
-- Предупреждения линтеров без сценария эксплуатации.
+- Running the script in the wrong directory by mistake (that is what `--dry-run` is for).
+- Overwriting files when `--force` / `-Force` was explicitly passed.
+- Linter warnings without an exploit scenario.
 
-## Поддерживаемые версии
+## Supported versions
 
-Исправления выходят только для актуального состояния ветки `main`.
+Fixes ship only for the current state of the `main` branch.

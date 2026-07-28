@@ -1,15 +1,15 @@
-# Автоопределение текстовых файлов и нормализация переводов строк в репозитории (LF).
+# Auto-detect text files and normalize line endings in the repo (LF).
 * text=auto
 
-# Скрипты и шаблоны обязаны оставаться LF даже при checkout на Windows,
-# иначе Git Bash / WSL получат "bad interpreter: /usr/bin/env bash^M".
+# Scripts and templates must stay LF even on Windows checkout,
+# otherwise Git Bash / WSL get "bad interpreter: /usr/bin/env bash^M".
 *.sh   text eol=lf
 *.py   text eol=lf
 *.md   text eol=lf
 *.mdc  text eol=lf
 *.json text eol=lf
 
-# PowerShell на Windows — нативный CRLF. Файл хранится в UTF-8 С BOM: без него
-# Windows PowerShell 5.1 читает .ps1 в ANSI-кодовой странице, и кириллица в скрипте
-# ломает разбор строковых литералов. BOM — часть содержимого, git его сохраняет.
+# PowerShell on Windows — native CRLF. File is stored as UTF-8 WITH BOM: without it,
+# Windows PowerShell 5.1 reads .ps1 as the ANSI code page and non-ASCII in the script
+# can break string-literal parsing. The BOM is part of the content; git keeps it.
 *.ps1  text eol=crlf
