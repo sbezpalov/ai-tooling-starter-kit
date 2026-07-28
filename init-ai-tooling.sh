@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-ai-tooling.sh (v2, AGENTS.md-модель) — разворачивает каркас AI-инструментов
+# init-ai-tooling.sh (1.0.0, AGENTS.md-модель) — разворачивает каркас AI-инструментов
 # (Claude, Cursor, Antigravity/Gemini, Perplexity) в текущем репозитории.
 #
 # Модель: AGENTS.md = единый источник истины (его читают нативно Cursor,
@@ -9,11 +9,12 @@
 # Идемпотентен (без --force не трогает существующее). Самодостаточен (шаблоны внутри).
 set -euo pipefail
 
+VERSION="1.0.0"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; NO_GITIGNORE=0
 
 usage() {
-  cat <<'USAGE'
-init-ai-tooling.sh (v2) — каркас AI-инструментов (AGENTS.md-модель).
+  cat <<USAGE
+init-ai-tooling.sh (${VERSION}) — каркас AI-инструментов (AGENTS.md-модель).
 
 Использование:
   init-ai-tooling.sh [--name ИМЯ] [--desc "ОПИСАНИЕ"] [--force] [--dry-run] [--no-gitignore]
@@ -24,6 +25,7 @@ init-ai-tooling.sh (v2) — каркас AI-инструментов (AGENTS.md-
   --force           Перезаписывать существующие файлы.
   --dry-run         Показать план, ничего не писать.
   --no-gitignore    Не трогать .gitignore.
+  --version         Показать версию и выйти.
   -h, --help        Справка.
 
 Создаёт:
@@ -45,6 +47,7 @@ while [ $# -gt 0 ]; do
     --force) FORCE=1; shift ;;
     --dry-run) DRYRUN=1; shift ;;
     --no-gitignore) NO_GITIGNORE=1; shift ;;
+    --version) printf '%s\n' "init-ai-tooling.sh ${VERSION}"; exit 0 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Неизвестная опция: $1" >&2; usage; exit 2 ;;
   esac
@@ -77,13 +80,15 @@ escape_json() {
   printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
 }
 render() {
-  local safe_name safe_desc safe_date safe_name_json
+  local safe_name safe_desc safe_date safe_name_json safe_version
   safe_name="$(escape_sed "$NAME")"
   safe_desc="$(escape_sed "$DESC")"
   safe_date="$(escape_sed "$DATE")"
+  safe_version="$(escape_sed "$VERSION")"
   safe_name_json="$(escape_sed "$(escape_json "$NAME")")"
   sed -e "s|__NAME_JSON__|${safe_name_json}|g" -e "s|__NAME__|${safe_name}|g" \
-      -e "s|__DESC__|${safe_desc}|g" -e "s|__DATE__|${safe_date}|g"
+      -e "s|__DESC__|${safe_desc}|g" -e "s|__DATE__|${safe_date}|g" \
+      -e "s|__VERSION__|${safe_version}|g"
 }
 
 # ---------- каталоги artifacts + .gitkeep ----------
@@ -139,7 +144,7 @@ __DESC__
 ## Раскладка инструментов
 Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
 
 # ======================================================================
@@ -325,7 +330,7 @@ Antigravity/Gemini и др.). Остальные файлы — тонкие р�
 Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
 Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
 
 # ---------- .gitignore ----------
@@ -350,7 +355,7 @@ if [ "$NO_GITIGNORE" != "1" ]; then
 fi
 
 say ""
-say "Готово (v2): каркас AGENTS.md-модели развёрнут для «${NAME}»."
+say "Готово (${VERSION}): каркас AGENTS.md-модели развёрнут для «${NAME}»."
 say "Дальше: заполни TODO в AGENTS.md — все инструменты берут контекст оттуда."
 [ "$DRYRUN" = "1" ] && say "(dry-run: ничего не записано)"
 exit 0

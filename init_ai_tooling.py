@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_ai_tooling.py (v2, AGENTS.md-модель) — кросс-ОС аналог init-ai-tooling.sh.
+"""init_ai_tooling.py (1.0.0, AGENTS.md-модель) — кросс-ОС аналог init-ai-tooling.sh.
 
 Разворачивает каркас AI-инструментов (Claude, Cursor, Antigravity/Gemini, Perplexity)
 в текущем репозитории. Модель: AGENTS.md = единый источник истины; тонкие
@@ -19,6 +19,8 @@ import os
 from pathlib import Path
 import sys
 
+VERSION = "1.0.0"
+
 # ---------------------------------------------------------------------------
 # Каталоги под артефакты (в них кладём .gitkeep)
 # ---------------------------------------------------------------------------
@@ -33,7 +35,7 @@ GITKEEP_DIRS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Шаблоны файлов (плейсхолдеры __NAME__ / __DESC__ / __DATE__).
+# Шаблоны файлов (плейсхолдеры __NAME__ / __DESC__ / __DATE__ / __VERSION__).
 # Порядок = порядок записи (совпадает с bash-версией).
 # ---------------------------------------------------------------------------
 FILES = []  # список кортежей (path, content)
@@ -87,7 +89,7 @@ __DESC__
 ## Раскладка инструментов
 Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 """)
 
 _add(".cursorrules", """\
@@ -253,7 +255,7 @@ Antigravity/Gemini и др.). Остальные файлы — тонкие р�
 Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
 Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 """)
 
 GITIGNORE_LINES = [
@@ -270,14 +272,15 @@ def say(msg=""):
     print(msg)
 
 
-def render(text, name, desc, date):
+def render(text, name, desc, date, version=VERSION):
     # __NAME_JSON__ — имя, экранированное для подстановки внутрь JSON: кавычки и
     # обратные слэши иначе сделали бы .claude/settings.json невалидным.
     name_json = name.replace("\\", "\\\\").replace('"', '\\"')
     return (text.replace("__NAME_JSON__", name_json)
                 .replace("__NAME__", name)
                 .replace("__DESC__", desc)
-                .replace("__DATE__", date))
+                .replace("__DATE__", date)
+                .replace("__VERSION__", version))
 
 
 def main(argv=None):
@@ -297,6 +300,12 @@ def main(argv=None):
     p.add_argument("--force", action="store_true", help="Перезаписывать существующие файлы.")
     p.add_argument("--dry-run", action="store_true", help="Показать план, ничего не писать.")
     p.add_argument("--no-gitignore", action="store_true", help="Не трогать .gitignore.")
+    p.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s " + VERSION,
+        help="Показать версию и выйти.",
+    )
     args = p.parse_args(argv)
 
     name = args.name or os.path.basename(os.getcwd())
@@ -384,7 +393,7 @@ def main(argv=None):
                     say("warning не удалось обновить .gitignore: %s" % e)
 
     say("")
-    say("Готово (v2): каркас AGENTS.md-модели развёрнут для «%s»." % name)
+    say("Готово (%s): каркас AGENTS.md-модели развёрнут для «%s»." % (VERSION, name))
     say("Дальше: заполни TODO в AGENTS.md — все инструменты берут контекст оттуда.")
     if dry:
         say("(dry-run: ничего не записано)")

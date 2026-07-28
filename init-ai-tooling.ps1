@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (v2, AGENTS.md-модель) — PowerShell версия для Windows 11/10.
+    init-ai-tooling.ps1 (1.0.0, AGENTS.md-модель) — PowerShell версия для Windows 11/10.
 
 .DESCRIPTION
     Разворачивает каркас AI-инструментов (Claude, Cursor, Antigravity/Gemini, Perplexity)
@@ -21,6 +21,9 @@
 .PARAMETER NoGitignore
     Не трогать .gitignore.
 
+.PARAMETER Version
+    Показать версию и выйти.
+
 .EXAMPLE
     .\init-ai-tooling.ps1 -Name "my-project" -Desc "Мой проект"
     powershell -ExecutionPolicy Bypass -File .\init-ai-tooling.ps1
@@ -32,10 +35,19 @@ param (
     [string]$Desc = "",
     [switch]$Force,
     [switch]$DryRun,
-    [switch]$NoGitignore
+    [switch]$NoGitignore,
+    [switch]$Version
 )
 
+# Константа отдельно от -Version: в PowerShell имена переменных case-insensitive.
+$ToolVersion = "1.0.0"
+
 $ErrorActionPreference = "Stop"
+
+if ($Version) {
+    Write-Host "init-ai-tooling.ps1 $ToolVersion"
+    exit 0
+}
 
 # Windows PowerShell 5.1 по умолчанию выводит в OEM-кодировке (CP437/CP866) — без этого
 # кириллица в сообщениях превратится в "?????". Ошибку глотаем: в некоторых хостах
@@ -125,7 +137,7 @@ function Write-ProjectFile {
     }
     # .Replace() — литеральная замена. -replace трактовал бы $Name/$Desc как строку
     # подстановки regex ($1, $&, $$), что ломало бы описания со знаком доллара.
-    $rendered = $Content.Replace("__NAME_JSON__", $NameJson).Replace("__NAME__", $Name).Replace("__DESC__", $Desc).Replace("__DATE__", $Date)
+    $rendered = $Content.Replace("__NAME_JSON__", $NameJson).Replace("__NAME__", $Name).Replace("__DESC__", $Desc).Replace("__DATE__", $Date).Replace("__VERSION__", $ToolVersion)
     Write-Utf8LfFile -Path $RelPath -Content $rendered
     Say ("write  " + ($RelPath -replace "\\", "/"))
 }
@@ -190,7 +202,7 @@ __DESC__
 ## Раскладка инструментов
 Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 '@
 
 $CursorRules = @'
@@ -356,7 +368,7 @@ Antigravity/Gemini и др.). Остальные файлы — тонкие р�
 Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
 Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
 
-<!-- Инициализировано init-ai-tooling v2 (__DATE__). -->
+<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
 '@
 
 Write-ProjectFile "AGENTS.md" $AgentsMd
@@ -404,7 +416,7 @@ if (-not $NoGitignore) {
 }
 
 Say ""
-Say "Готово (v2): каркас AGENTS.md-модели развёрнут для «$Name»."
+Say "Готово (${ToolVersion}): каркас AGENTS.md-модели развёрнут для «$Name»."
 Say "Дальше: заполни TODO в AGENTS.md — все инструменты берут контекст оттуда."
 if ($DryRun) {
     Say "(dry-run: ничего не записано)"
