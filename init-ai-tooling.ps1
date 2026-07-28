@@ -1,31 +1,31 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (1.0.0, AGENTS.md-модель) — PowerShell версия для Windows 11/10.
+    init-ai-tooling.ps1 (1.0.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
 .DESCRIPTION
-    Разворачивает каркас AI-инструментов (Claude, Cursor, Antigravity/Gemini, Perplexity)
-    в текущем репозитории. Модель: AGENTS.md = единый источник истины.
+    Deploys an AI tooling scaffold (Claude, Cursor, Antigravity/Gemini, Perplexity)
+    in the current repository. Model: AGENTS.md = single source of truth.
 
 .PARAMETER Name
-    Имя проекта (по умолчанию — имя текущей папки).
+    Project name (defaults to the current folder name).
 
 .PARAMETER Desc
-    Короткое описание (одна строка).
+    Short one-line description.
 
 .PARAMETER Force
-    Перезаписывать существующие файлы.
+    Overwrite existing files.
 
 .PARAMETER DryRun
-    Показать план, ничего не писать.
+    Print the plan, write nothing.
 
 .PARAMETER NoGitignore
-    Не трогать .gitignore.
+    Leave .gitignore alone.
 
 .PARAMETER Version
-    Показать версию и выйти.
+    Print version and exit.
 
 .EXAMPLE
-    .\init-ai-tooling.ps1 -Name "my-project" -Desc "Мой проект"
+    .\init-ai-tooling.ps1 -Name "my-project" -Desc "My project"
     powershell -ExecutionPolicy Bypass -File .\init-ai-tooling.ps1
 #>
 #Requires -Version 5.1
@@ -39,7 +39,7 @@ param (
     [switch]$Version
 )
 
-# Константа отдельно от -Version: в PowerShell имена переменных case-insensitive.
+# Separate constant from -Version: PowerShell variable names are case-insensitive.
 $ToolVersion = "1.0.0"
 
 $ErrorActionPreference = "Stop"
@@ -49,17 +49,17 @@ if ($Version) {
     exit 0
 }
 
-# Windows PowerShell 5.1 по умолчанию выводит в OEM-кодировке (CP437/CP866) — без этого
-# кириллица в сообщениях превратится в "?????". Ошибку глотаем: в некоторых хостах
-# (ISE, перенаправленный stdout) присвоение недоступно и это не повод падать.
+# Windows PowerShell 5.1 defaults to OEM encoding (CP437/CP866) — without this
+# non-ASCII text in messages becomes "?????". Swallow errors: in some hosts
+# (ISE, redirected stdout) assignment is unavailable and that is not fatal.
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 
-# .NET разрешает относительные пути через [Environment]::CurrentDirectory, который НЕ
-# синхронизирован с текущим расположением PowerShell. Без этой строки [System.IO.*]
-# писал бы файлы в стартовый каталог процесса, а не туда, куда пользователь сделал cd.
+# .NET resolves relative paths via [Environment]::CurrentDirectory, which is NOT
+# synced with PowerShell's current location. Without this line [System.IO.*]
+# would write to the process start directory, not where the user cd'd.
 if ($PWD.Provider.Name -ne 'FileSystem') {
-    throw ("Запусти скрипт из каталога файловой системы. Текущее расположение: " +
-           "$($PWD.Path) (провайдер $($PWD.Provider.Name)).")
+    throw ("Run the script from a filesystem directory. Current location: " +
+           "$($PWD.Path) (provider $($PWD.Provider.Name)).")
 }
 [Environment]::CurrentDirectory = $PWD.ProviderPath
 
@@ -67,11 +67,11 @@ if ([string]::IsNullOrWhiteSpace($Name)) {
     $Name = (Get-Item -Path .).Name
 }
 if ([string]::IsNullOrWhiteSpace($Desc)) {
-    $Desc = "TODO: короткое описание проекта"
+    $Desc = "TODO: short project description"
 }
 $Date = (Get-Date -Format "yyyy-MM-dd")
-# Отдельное значение для подстановки внутрь JSON: кавычки и обратные слэши в имени
-# проекта иначе сделали бы .claude/settings.json невалидным.
+# Separate value for JSON substitution: quotes and backslashes in the project name
+# would otherwise invalidate .claude/settings.json.
 $NameJson = $Name.Replace('\', '\\').Replace('"', '\"')
 
 function Say([string]$msg = "") {
@@ -87,8 +87,8 @@ function Write-Utf8LfFile {
     if ($parent -and -not (Test-Path $parent)) {
         [System.IO.Directory]::CreateDirectory($parent) | Out-Null
     }
-    # Нормализуем в LF; непустые файлы — с завершающим \n, как в Python/bash-шаблонах
-    # (here-string в PowerShell не всегда сохраняет newline перед закрывающим '@).
+    # Normalize to LF; non-empty files end with \n, matching Python/bash templates
+    # (here-strings in PowerShell do not always keep the newline before closing '@).
     $lfContent = $Content -replace "`r`n", "`n" -replace "`r", "`n"
     if ($lfContent.Length -gt 0 -and -not $lfContent.EndsWith("`n")) {
         $lfContent += "`n"
@@ -128,21 +128,21 @@ function Write-ProjectFile {
         [string]$Content
     )
     if ((Test-Path $RelPath) -and -not $Force) {
-        Say ("skip   " + ($RelPath -replace "\\", "/") + " (уже есть)")
+        Say ("skip   " + ($RelPath -replace "\\", "/") + " (already exists)")
         return
     }
     if ($DryRun) {
         Say ("write  " + ($RelPath -replace "\\", "/"))
         return
     }
-    # .Replace() — литеральная замена. -replace трактовал бы $Name/$Desc как строку
-    # подстановки regex ($1, $&, $$), что ломало бы описания со знаком доллара.
+    # .Replace() — literal substitution. -replace would treat $Name/$Desc as regex
+    # substitution ($1, $&, $$), breaking descriptions containing dollar signs.
     $rendered = $Content.Replace("__NAME_JSON__", $NameJson).Replace("__NAME__", $Name).Replace("__DESC__", $Desc).Replace("__DATE__", $Date).Replace("__VERSION__", $ToolVersion)
     Write-Utf8LfFile -Path $RelPath -Content $rendered
     Say ("write  " + ($RelPath -replace "\\", "/"))
 }
 
-# 1) каталоги artifacts + .gitkeep
+# 1) artifact directories + .gitkeep
 $GitkeepDirs = @(
     ".ai/artifacts",
     ".claude/commands",
@@ -157,98 +157,98 @@ foreach ($d in $GitkeepDirs) {
     Write-Gitkeep $d
 }
 
-# 2) Файлы шаблонов
+# 2) template files
 $AgentsMd = @'
 # AGENTS.md — __NAME__
 
-> **Источник истины для всех AI-инструментов и людей в этом репозитории.**
-> Файл читают нативно Cursor, Google Antigravity/Gemini и другие AGENTS-совместимые
-> инструменты. Тонкие редиректы (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`,
-> `PERPLEXITY.md`) дополняют, но не отменяют эти правила. **Прочитай целиком перед работой.**
+> **Single source of truth for all AI tools and humans in this repository.**
+> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
+> add detail but do not override these rules. **Read this file fully before working.**
 
-## 1. Проект
+## 1. Project
 __DESC__
 
-<!-- TODO: 2–4 предложения — назначение, пользователи, ценность. -->
+<!-- TODO: 2–4 sentences — purpose, users, value. -->
 
-## 2. Стек
-<!-- TODO: языки, фреймворки, БД, инфраструктура. -->
+## 2. Stack
+<!-- TODO: languages, frameworks, DB, infrastructure. -->
 
-## 3. Структура
-<!-- TODO: таблица «каталог → назначение». -->
+## 3. Structure
+<!-- TODO: table of "directory → purpose". -->
 
-## 4. Статус / текущий приоритет
-<!-- TODO: где сейчас проект, на чём фокус. -->
+## 4. Status / current priority
+<!-- TODO: where the project is now and what to focus on. -->
 
-## 5. Как вносить изменения (агент)
-- Работай через план: декомпозируй задачу и покажи шаги ДО исполнения.
-- Human-in-the-loop: для необратимых операций и правок прод-данных — остановись и спроси.
-- Формируй артефакты (diff, список изменённых файлов, план отката) до применения.
-- Изменения атомарные; объясняй ЧТО и ПОЧЕМУ.
-- Новый код — с тестами; задача не «done» при падающих тестах/линте.
+## 5. How to change things (agent)
+- Work from a plan: break the task down and show steps BEFORE executing.
+- Human-in-the-loop: for irreversible operations and production-data edits — stop and ask.
+- Produce artifacts (diff, list of changed files, rollback plan) before applying.
+- Keep changes atomic; explain WHAT and WHY.
+- New code ships with tests; the task is not "done" if tests/lint are failing.
 
-## 6. Безопасность (NEVER)
-- Прод не редактируется напрямую <!-- TODO: маршрут доставки, напр. local → staging → prod через git -->.
-- Секреты (пароли, ключи, токены, `.env`, локальные конфиги) — не коммитить и не выводить;
-  в репозитории только `*.example`.
-- Деструктивные операции над боевыми данными/БД — только с явным подтверждением и прогоном на копии.
-- <!-- TODO: проектные запреты (не трогать ядро/…). -->
+## 6. Security (NEVER)
+- Do not edit production directly <!-- TODO: delivery path, e.g. local → staging → prod via git -->.
+- Secrets (passwords, keys, tokens, `.env`, local configs) — never commit or print them;
+  the repo may only contain `*.example` files.
+- Destructive operations on production data/DB — only with explicit confirmation and a dry run on a copy.
+- <!-- TODO: project-specific bans (do not touch core/…). -->
 
 ## 7. Definition of Done
-- [ ] Изменение локально; секреты не попали в код/коммит.
-- [ ] Тесты/линт зелёные; при необходимости проверено на staging.
-- [ ] Diff отревьюен, есть план отката.
+- [ ] Change is local; secrets did not land in code/commit.
+- [ ] Tests/lint are green; verified on staging if needed.
+- [ ] Diff is reviewed; a rollback plan exists.
 
-## Раскладка инструментов
-Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
+## Tool layout
+Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
+<!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 '@
 
 $CursorRules = @'
-# Cursor читает этот файл для совместимости. ИСТОЧНИК ИСТИНЫ — ./AGENTS.md.
-# Детальные правила — в ./.cursor/rules/*.mdc. Прочитай AGENTS.md перед любой работой.
-См. AGENTS.md
+# Cursor reads this file for compatibility. SOURCE OF TRUTH — ./AGENTS.md.
+# Detailed rules — ./.cursor/rules/*.mdc. Read AGENTS.md before any work.
+See AGENTS.md
 '@
 
 $CursorRule000 = @'
 ---
-description: Базовый контекст проекта __NAME__ — указывает на AGENTS.md
+description: Base project context for __NAME__ — points to AGENTS.md
 alwaysApply: true
 ---
 
 # __NAME__
 
-Источник истины — `../../AGENTS.md` (прочитай целиком). Здесь и в соседних `*.mdc` —
-только Cursor-специфика и детальные тематические правила.
+Source of truth — `../../AGENTS.md` (read it fully). This file and sibling `*.mdc`
+files hold Cursor-specific and detailed topical rules only.
 '@
 
 $CursorRule010 = @'
 ---
-description: Безопасность, секреты, работа с продом
+description: Security, secrets, production work
 alwaysApply: true
 ---
 
-# Безопасность
+# Security
 
-- Секреты (пароли, ключи, токены, `.env`, локальные конфиги) — не в код, коммиты или контекст.
-- Прод не редактируется напрямую; деструктивные операции над боевыми данными — только
-  с явным подтверждением и прогоном на копии.
-- Перед рискованной правкой — покажи diff и план отката, спроси подтверждение.
-- Полные правила — в `../../AGENTS.md`.
+- Secrets (passwords, keys, tokens, `.env`, local configs) — not in code, commits, or context.
+- Do not edit production directly; destructive operations on production data — only
+  with explicit confirmation and a dry run on a copy.
+- Before a risky change — show a diff and rollback plan, ask for confirmation.
+- Full rules — in `../../AGENTS.md`.
 '@
 
 $CursorIgnore = @'
-# Секреты и локальный конфиг
+# Secrets and local config
 .env
 *.local
 
-# Артефакты сборки и данные
+# Build artifacts and data
 dist/
 build/
 *.egg-info/
 
-# Окружения и кэши
+# Environments and caches
 .venv/
 venv/
 node_modules/
@@ -264,26 +264,26 @@ __pycache__/
 $ClaudeMd = @'
 # CLAUDE.md — __NAME__
 
-**Источник истины — [`AGENTS.md`](AGENTS.md). Прочитай его первым.** Ниже — только Claude-специфика.
+**Source of truth — [`AGENTS.md`](AGENTS.md). Read it first.** Below — Claude-specific only.
 
-## Директории Claude
-- `.claude/commands/` — slash-команды; `.claude/agents/` — субагенты; `.claude/artifacts/` — артефакты.
-- Командные настройки — `.claude/settings.json`; личные — `.claude/settings.local.json` (не коммить).
+## Claude directories
+- `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
+- Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).
 '@
 
 $ClaudeReadme = @'
-# .claude/ — конфигурация Claude Code
+# .claude/ — Claude Code configuration
 
-Источник истины — [`../AGENTS.md`](../AGENTS.md).
+Source of truth — [`../AGENTS.md`](../AGENTS.md).
 
-- `commands/` — slash-команды; `agents/` — субагенты; `artifacts/` — артефакты Claude.
-- `settings.json` — командные настройки; `settings.local.json` — личные (не коммить).
+- `commands/` — slash commands; `agents/` — subagents; `artifacts/` — Claude artifacts.
+- `settings.json` — team settings; `settings.local.json` — personal (do not commit).
 '@
 
 $ClaudeSettings = @'
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Командные настройки Claude Code для __NAME_JSON__. Личные оверрайды — в settings.local.json (не коммитить).",
+  "//": "Team Claude Code settings for __NAME_JSON__. Personal overrides — settings.local.json (do not commit).",
   "permissions": {
     "allow": ["Read", "Edit"],
     "deny": [
@@ -304,71 +304,71 @@ $ClaudeSettings = @'
 $GeminiMd = @'
 # GEMINI.md — Google Antigravity / Gemini
 
-> Antigravity читает и `AGENTS.md`, и `GEMINI.md`; при конфликте приоритет у `GEMINI.md`.
-> **Источник истины по проекту — `AGENTS.md`, прочитай первым.** Здесь — Antigravity/Gemini-специфика.
+> Antigravity reads both `AGENTS.md` and `GEMINI.md`; on conflict, `GEMINI.md` wins.
+> **Project source of truth — `AGENTS.md`; read it first.** Here — Antigravity/Gemini specifics.
 
-## Агентный режим
-- Работай через план (task/plan): декомпозируй задачу и покажи шаги до исполнения.
-- Human-in-the-loop: для правок прод-данных/ядра — остановись и запроси подтверждение.
-- Формируй артефакты (diff, список файлов, план отката) до применения; сохраняй в `.antigravity/artifacts/`.
-- Не выполняй shell-команды против боевого сервера/БД.
-- Изменения атомарные, с объяснением ЧТО и ПОЧЕМУ.
+## Agent mode
+- Work from a plan (task/plan): break the task down and show steps before executing.
+- Human-in-the-loop: for production-data/core edits — stop and ask for confirmation.
+- Produce artifacts (diff, file list, rollback plan) before applying; save them in `.antigravity/artifacts/`.
+- Do not run shell commands against a production server/DB.
+- Keep changes atomic, with an explanation of WHAT and WHY.
 '@
 
 $AntigravityReadme = @'
-# .antigravity/ — рабочая область Google Antigravity
+# .antigravity/ — Google Antigravity workspace
 
-Правила — в [`../GEMINI.md`](../GEMINI.md); источник истины — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — планы, task-list, walkthrough, записи браузера.
+Rules — in [`../GEMINI.md`](../GEMINI.md); source of truth — [`../AGENTS.md`](../AGENTS.md).
+`artifacts/` — plans, task lists, walkthroughs, browser recordings.
 '@
 
 $PerplexityMd = @'
-# PERPLEXITY.md — бриф для Perplexity / research-агентов
+# PERPLEXITY.md — brief for Perplexity / research agents
 
-> У Perplexity нет нативного конфига репозитория. Этот файл — **брифинг**: вставь его в
-> промпт / Space (или Comet), чтобы задать роль, контекст и границы. Контекст проекта — из `AGENTS.md`.
+> Perplexity has no native repo config. This file is a **brief**: paste it into a
+> prompt / Space (or Comet) to set role, context, and boundaries. Project context comes from `AGENTS.md`.
 
-## Роль
-Исследовательский/контент-ассистент проекта __NAME__.
-<!-- TODO: уточни роль; пишет ли код; есть ли доступ к данным. -->
+## Role
+Research/content assistant for __NAME__.
+<!-- TODO: clarify the role; whether it writes code; data access. -->
 
-## Для чего использовать
-<!-- TODO: ресёрч, факт-чек, черновики, конкурентный анализ. -->
+## What to use it for
+<!-- TODO: research, fact-checking, drafts, competitive analysis. -->
 
-## Границы
-- Указывай источники для фактов; не выдумывай — помечай «уточнить».
-- <!-- TODO: доменные ограничения (реклама/медицина/юр. и т.п.). -->
+## Boundaries
+- Cite sources for facts; do not invent — mark unknowns as "needs verification".
+- <!-- TODO: domain limits (ads/medicine/legal/etc.). -->
 
-## Формат выдачи
-Структурированно (Markdown/таблица), удобно для переноса. Сохраняй как артефакт в `.perplexity/artifacts/`.
+## Output format
+Structured (Markdown/table), easy to transfer. Save as an artifact in `.perplexity/artifacts/`.
 '@
 
 $PerplexityReadme = @'
 # .perplexity/ — Perplexity / research
 
-Бриф для вставки — [`../PERPLEXITY.md`](../PERPLEXITY.md); контекст — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — сохранённые ресёрч-отчёты (`YYYY-MM-DD-тема.md`; в конце — источники для верификации).
+Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGENTS.md`](../AGENTS.md).
+`artifacts/` — saved research reports (`YYYY-MM-DD-topic.md`; end with sources for verification).
 '@
 
 $AiReadme = @'
-# .ai/ — раскладка AI-инструментов
+# .ai/ — AI tooling layout
 
-**Источник истины — [`../AGENTS.md`](../AGENTS.md)** (читается нативно Cursor,
-Antigravity/Gemini и др.). Остальные файлы — тонкие редиректы/специфика.
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
-| Инструмент | Файл | Артефакты |
+| Tool | File | Artifacts |
 |---|---|---|
-| Все агенты | `AGENTS.md` | `.ai/artifacts/` |
+| All agents | `AGENTS.md` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
-| Perplexity | `PERPLEXITY.md` (вставляемый бриф) | `.perplexity/artifacts/` |
+| Perplexity | `PERPLEXITY.md` (paste-in brief) | `.perplexity/artifacts/` |
 
-## Правило
-Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
-Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
+## Rule
+Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
+An artifact is a durable session result (plan, research, diff, task list).
 
-<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
+<!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 '@
 
 Write-ProjectFile "AGENTS.md" $AgentsMd
@@ -390,8 +390,8 @@ if (-not $NoGitignore) {
     $gitignorePath = ".gitignore"
     $existingLines = @()
     if (Test-Path $gitignorePath) {
-        # @(...) обязательно: на файле из одной строки Get-Content вернёт скаляр String,
-        # и дальнейший += сконкатенировал бы строки вместо добавления в массив.
+        # @(...) required: Get-Content on a single-line file returns a scalar String,
+        # and later += would concatenate strings instead of appending to an array.
         $existingLines = @(Get-Content -Path $gitignorePath -Encoding UTF8)
     }
     $linesToAdd = @(".env", ".env.*", "!.env.example", "*.local", ".claude/settings.local.json", ".DS_Store")
@@ -416,8 +416,8 @@ if (-not $NoGitignore) {
 }
 
 Say ""
-Say "Готово (${ToolVersion}): каркас AGENTS.md-модели развёрнут для «$Name»."
-Say "Дальше: заполни TODO в AGENTS.md — все инструменты берут контекст оттуда."
+Say "Done (${ToolVersion}): AGENTS.md-model scaffold deployed for `"$Name`"."
+Say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
 if ($DryRun) {
-    Say "(dry-run: ничего не записано)"
+    Say "(dry-run: nothing was written)"
 }

@@ -6,9 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Смысл этого пайплайна: три реализации (bash / PowerShell / Python) обязаны давать
-# байт-в-байт одинаковый результат. Расхождение = баг. Две Windows-джобы гоняют .ps1
-# на настоящей Windows — под встроенным Windows PowerShell 5.1 и под PowerShell 7+.
+# Three implementations (bash / PowerShell / Python) must produce byte-identical
+# trees. Divergence is a bug. Two Windows jobs exercise .ps1 on real Windows —
+# under built-in Windows PowerShell 5.1 and under PowerShell 7+.
 
 jobs:
   posix:
@@ -23,22 +23,22 @@ jobs:
           sudo apt-get install -y shellcheck
           shellcheck init-ai-tooling.sh
 
-      - name: синтаксис python
+      - name: python syntax
         run: python3 -m py_compile init_ai_tooling.py tests/compare-trees.py
 
-      - name: dry-run не должен ничего писать
+      - name: dry-run must write nothing
         run: |
           mkdir -p "$RUNNER_TEMP/dry" && cd "$RUNNER_TEMP/dry"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI" --dry-run
           python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI" --dry-run
-          test -z "$(ls -A .)" || { echo "dry-run создал файлы!"; ls -Ra .; exit 1; }
+          test -z "$(ls -A .)" || { echo "dry-run created files!"; ls -Ra .; exit 1; }
 
-      - name: развернуть bash-версией
+      - name: scaffold with bash
         run: |
           mkdir -p "$RUNNER_TEMP/tree-bash" && cd "$RUNNER_TEMP/tree-bash"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI"
 
-      - name: развернуть python-версией
+      - name: scaffold with python
         run: |
           mkdir -p "$RUNNER_TEMP/tree-py" && cd "$RUNNER_TEMP/tree-py"
           python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI"
@@ -46,14 +46,14 @@ jobs:
       - name: bash == python
         run: python3 tests/compare-trees.py "$RUNNER_TEMP/tree-bash" "$RUNNER_TEMP/tree-py"
 
-      - name: идемпотентность (повторный запуск ничего не меняет)
+      - name: idempotency (re-run changes nothing)
         run: |
           cd "$RUNNER_TEMP/tree-bash"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI"
           python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI"
           python3 "$GITHUB_WORKSPACE/tests/compare-trees.py" "$RUNNER_TEMP/tree-bash" "$RUNNER_TEMP/tree-py"
 
-      - name: settings.json — валидный JSON даже при кавычках в имени
+      - name: settings.json is valid JSON even with quotes in the name
         run: |
           mkdir -p "$RUNNER_TEMP/json" && cd "$RUNNER_TEMP/json"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name 'my "cool" a\b proj' >/dev/null
@@ -65,14 +65,14 @@ jobs:
           path: ${{ runner.temp }}/tree-bash
           include-hidden-files: true
 
-  # Два отдельных job’а вместо matrix.shell: step-level shell: ${{ matrix.* }}
-  # GitHub Actions не резолвит (Unrecognized named-value: matrix) → startup_failure.
+  # Two separate jobs instead of matrix.shell: step-level shell: ${{ matrix.* }}
+  # is not resolved by GitHub Actions (Unrecognized named-value: matrix) → startup_failure.
   windows-ps51:
     name: powershell 5.1 (windows)
     runs-on: windows-latest
     needs: posix
-    # GHA пишет step-скрипт в ANSI для Windows PowerShell 5.1 → кириллица в
-    # throw ломает парсер. Python на runner’е по умолчанию cp1252.
+    # GHA writes the step script in ANSI for Windows PowerShell 5.1 → non-ASCII in
+    # throw can break the parser. Python on the runner defaults to cp1252.
     env:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: "1"
@@ -91,26 +91,26 @@ jobs:
           $all = Invoke-ScriptAnalyzer -Path ./init-ai-tooling.ps1
           $all | Format-Table -AutoSize | Out-String | Write-Host
           $errors = @($all | Where-Object Severity -eq 'Error')
-          if ($errors.Count) { throw "PSScriptAnalyzer: $($errors.Count) ошибок" }
+          if ($errors.Count) { throw "PSScriptAnalyzer: $($errors.Count) error(s)" }
 
-      - name: .ps1 обязан быть в UTF-8 с BOM
+      - name: .ps1 must be UTF-8 with BOM
         shell: pwsh
         run: |
           $b = [System.IO.File]::ReadAllBytes("./init-ai-tooling.ps1")
           if ($b[0] -ne 0xEF -or $b[1] -ne 0xBB -or $b[2] -ne 0xBF) {
-            throw "Нет BOM: Windows PowerShell 5.1 прочитает файл в ANSI и сломает кириллицу."
+            throw "Missing BOM: Windows PowerShell 5.1 would read the file as ANSI."
           }
 
-      - name: dry-run не должен ничего писать
+      - name: dry-run must write nothing
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
           Set-Location "$env:RUNNER_TEMP\dry"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
-          # ASCII only: PS 5.1 + GHA step encoding cannot parse Cyrillic in throw.
+          # ASCII only: PS 5.1 + GHA step encoding cannot parse non-ASCII in throw.
           if (Get-ChildItem -Force) { throw "dry-run created files!" }
 
-      - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
+      - name: scaffold after Set-Location (catches CurrentDirectory desync)
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-ps" | Out-Null
@@ -121,14 +121,14 @@ jobs:
         shell: pwsh
         run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
-      - name: идемпотентность
+      - name: idempotency
         shell: powershell
         run: |
           Set-Location "$env:RUNNER_TEMP\tree-ps"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
           python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
-      - name: settings.json — валидный JSON даже при кавычках в имени
+      - name: settings.json is valid JSON even with quotes in the name
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\json" | Out-Null
@@ -151,7 +151,7 @@ jobs:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
-      - name: dry-run не должен ничего писать
+      - name: dry-run must write nothing
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\dry" | Out-Null
@@ -159,7 +159,7 @@ jobs:
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -DryRun
           if (Get-ChildItem -Force) { throw "dry-run created files!" }
 
-      - name: развернуть после Set-Location (ловит рассинхрон CurrentDirectory)
+      - name: scaffold after Set-Location (catches CurrentDirectory desync)
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-ps" | Out-Null
@@ -170,14 +170,14 @@ jobs:
         shell: pwsh
         run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
-      - name: идемпотентность
+      - name: idempotency
         shell: pwsh
         run: |
           Set-Location "$env:RUNNER_TEMP\tree-ps"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
           python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
-      - name: settings.json — валидный JSON даже при кавычках в имени
+      - name: settings.json is valid JSON even with quotes in the name
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\json" | Out-Null

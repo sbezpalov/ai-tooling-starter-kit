@@ -1,13 +1,13 @@
-# Секреты и локальный конфиг
+# Secrets and local config
 .env
 *.local
 
-# Артефакты сборки и данные
+# Build artifacts and data
 dist/
 build/
 *.egg-info/
 
-# Окружения и кэши
+# Environments and caches
 .venv/
 venv/
 node_modules/

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Побайтовое сравнение двух деревьев, развёрнутых разными реализациями init-ai-tooling.
+"""Byte-for-byte comparison of two trees scaffolded by different init-ai-tooling implementations.
 
-Три скрипта (bash / PowerShell / Python) обязаны давать идентичный результат.
-Единственное допустимое расхождение — строка-подпись генератора в конце
-AGENTS.md и .ai/README.md (semver релиза), она нормализуется.
+The three scripts (bash / PowerShell / Python) must produce identical output.
+The only allowed divergence is the generator signature line at the end of
+AGENTS.md and .ai/README.md (release semver); it is normalized.
 
-Переводы строк НЕ нормализуются намеренно: все три реализации обязаны писать LF
-на любой ОС, и расхождение здесь — это баг, который тест должен ловить.
+Line endings are deliberately NOT normalized: all three implementations must
+write LF on every OS, and a mismatch here is a bug the test must catch.
 
-Использование:
-    python3 tests/compare-trees.py КАТАЛОГ_A КАТАЛОГ_B
-Код возврата: 0 — деревья совпадают, 1 — есть расхождения.
+Usage:
+    python3 tests/compare-trees.py DIR_A DIR_B
+Exit codes: 0 — trees match, 1 — differences found.
 """
 import os
 import re
@@ -21,7 +21,7 @@ SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? \d+\.\d+\.\d
 
 
 def configure_stdio():
-    """UTF-8 stdout/stderr: иначе на Windows (cp1252) print с кириллицей падает."""
+    """UTF-8 stdout/stderr: otherwise Windows (cp1252) can fail on non-ASCII prints."""
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(encoding="utf-8", errors="replace")
@@ -30,7 +30,7 @@ def configure_stdio():
 
 
 def snapshot(root):
-    """{относительный путь -> содержимое} для всех файлов дерева."""
+    """{relative path -> content} for every file in the tree."""
     files = {}
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames.sort()
@@ -51,26 +51,25 @@ def main(argv):
 
     problems = []
     for rel in sorted(set(a) - set(b)):
-        problems.append("только в %s: %s" % (a_root, rel))
+        problems.append("only in %s: %s" % (a_root, rel))
     for rel in sorted(set(b) - set(a)):
-        problems.append("только в %s: %s" % (b_root, rel))
+        problems.append("only in %s: %s" % (b_root, rel))
     for rel in sorted(set(a) & set(b)):
         if a[rel] != b[rel]:
-            problems.append("различается содержимое: %s" % rel)
+            problems.append("content differs: %s" % rel)
             if b"\r\n" in a[rel] or b"\r\n" in b[rel]:
-                problems.append("    ^ обнаружены CRLF — ожидается LF на всех ОС")
+                problems.append("    ^ CRLF found — LF expected on every OS")
 
     if problems:
-        print("РАСХОЖДЕНИЯ (%d):" % len(problems))
+        print("DIFFERENCES (%d):" % len(problems))
         for p in problems:
             print("  " + p)
         return 1
 
-    print("Деревья идентичны: %d файлов." % len(a))
+    print("Trees are identical: %d files." % len(a))
     return 0
 
 
 if __name__ == "__main__":
     configure_stdio()
     sys.exit(main(sys.argv))
-

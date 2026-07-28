@@ -1,9 +1,9 @@
 ---
-description: Базовый контекст проекта ai-tooling-starter-kit — указывает на AGENTS.md
+description: Base project context for ai-tooling-starter-kit — points to AGENTS.md
 alwaysApply: true
 ---
 
 # ai-tooling-starter-kit
 
-Источник истины — `../../AGENTS.md` (прочитай целиком). Здесь и в соседних `*.mdc` —
-только Cursor-специфика и детальные тематические правила.
+Source of truth — `../../AGENTS.md` (read it fully). This file and sibling `*.mdc`
+files hold Cursor-specific and detailed topical rules only.

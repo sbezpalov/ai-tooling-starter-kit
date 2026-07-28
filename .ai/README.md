@@ -1,18 +1,18 @@
-# .ai/ — раскладка AI-инструментов
+# .ai/ — AI tooling layout
 
-**Источник истины — [`../AGENTS.md`](../AGENTS.md)** (читается нативно Cursor,
-Antigravity/Gemini и др.). Остальные файлы — тонкие редиректы/специфика.
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
-| Инструмент | Файл | Артефакты |
+| Tool | File | Artifacts |
 |---|---|---|
-| Все агенты | `AGENTS.md` | `.ai/artifacts/` |
+| All agents | `AGENTS.md` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
-| Perplexity | `PERPLEXITY.md` (вставляемый бриф) | `.perplexity/artifacts/` |
+| Perplexity | `PERPLEXITY.md` (paste-in brief) | `.perplexity/artifacts/` |
 
-## Правило
-Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
-Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
+## Rule
+Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
+An artifact is a durable session result (plan, research, diff, task list).
 
-<!-- Инициализировано init-ai-tooling 1.0.0 (2026-07-28). -->
+<!-- Initialized by init-ai-tooling 1.0.0 (2026-07-28). -->

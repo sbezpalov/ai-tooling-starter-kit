@@ -1,4 +1,4 @@
 # .perplexity/ — Perplexity / research
 
-Бриф для вставки — [`../PERPLEXITY.md`](../PERPLEXITY.md); контекст — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — сохранённые ресёрч-отчёты (`YYYY-MM-DD-тема.md`; в конце — источники для верификации).
+Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGENTS.md`](../AGENTS.md).
+`artifacts/` — saved research reports (`YYYY-MM-DD-topic.md`; end with sources for verification).

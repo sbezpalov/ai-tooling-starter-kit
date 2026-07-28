@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# init-ai-tooling.sh (1.0.0, AGENTS.md-модель) — разворачивает каркас AI-инструментов
-# (Claude, Cursor, Antigravity/Gemini, Perplexity) в текущем репозитории.
+# init-ai-tooling.sh (1.0.0, AGENTS.md model) — deploys an AI tooling scaffold
+# (Claude, Cursor, Antigravity/Gemini, Perplexity) in the current repository.
 #
-# Модель: AGENTS.md = единый источник истины (его читают нативно Cursor,
-# Antigravity/Gemini и др.). Остальное — тонкие файлы-редиректы/специфика в корне
-# (.cursorrules, CLAUDE.md, GEMINI.md, PERPLEXITY.md). `.ai/` — только под артефакты.
+# Model: AGENTS.md = single source of truth (read natively by Cursor,
+# Antigravity/Gemini, and others). Everything else — thin redirect/specific files
+# at the root (.cursorrules, CLAUDE.md, GEMINI.md, PERPLEXITY.md). `.ai/` — artifacts only.
 #
-# Идемпотентен (без --force не трогает существующее). Самодостаточен (шаблоны внутри).
+# Idempotent (without --force does not touch existing files). Self-contained (templates inside).
 set -euo pipefail
 
 VERSION="1.0.0"
@@ -14,29 +14,29 @@ NAME=""; DESC=""; FORCE=0; DRYRUN=0; NO_GITIGNORE=0
 
 usage() {
   cat <<USAGE
-init-ai-tooling.sh (${VERSION}) — каркас AI-инструментов (AGENTS.md-модель).
+init-ai-tooling.sh (${VERSION}) — AI tooling scaffold (AGENTS.md model).
 
-Использование:
-  init-ai-tooling.sh [--name ИМЯ] [--desc "ОПИСАНИЕ"] [--force] [--dry-run] [--no-gitignore]
+Usage:
+  init-ai-tooling.sh [--name NAME] [--desc "DESC"] [--force] [--dry-run] [--no-gitignore]
 
-Опции:
-  --name ИМЯ        Имя проекта (по умолчанию — имя папки).
-  --desc ТЕКСТ      Короткое описание (одна строка).
-  --force           Перезаписывать существующие файлы.
-  --dry-run         Показать план, ничего не писать.
-  --no-gitignore    Не трогать .gitignore.
-  --version         Показать версию и выйти.
-  -h, --help        Справка.
+Options:
+  --name NAME       Project name (defaults to the folder name).
+  --desc TEXT       Short one-line description.
+  --force           Overwrite existing files.
+  --dry-run         Print the plan, write nothing.
+  --no-gitignore    Leave .gitignore alone.
+  --version         Print version and exit.
+  -h, --help        Show this help.
 
-Создаёт:
-  AGENTS.md                ★ источник истины (проект + правила для агентов)
-  .cursorrules             редирект → AGENTS.md (legacy Cursor)
-  .cursor/rules/*.mdc      детальные правила (000-project, 010-safety) + .cursorignore
-  CLAUDE.md                редирект → AGENTS.md (Claude Code / Cowork)
-  GEMINI.md                Antigravity/Gemini-специфика (приоритет при конфликте)
-  PERPLEXITY.md            вставляемый бриф для Perplexity / research-агентов
-  .ai/                     карта раскладки + кросс-инструментальные артефакты
-  .claude/ .cursor/ .antigravity/ .perplexity/  — папки artifacts/ каждого инструмента
+Creates:
+  AGENTS.md                ★ source of truth (project + agent rules)
+  .cursorrules             redirect → AGENTS.md (legacy Cursor)
+  .cursor/rules/*.mdc      detailed rules (000-project, 010-safety) + .cursorignore
+  CLAUDE.md                redirect → AGENTS.md (Claude Code / Cowork)
+  GEMINI.md                Antigravity/Gemini specifics (wins on conflict)
+  PERPLEXITY.md            paste-in brief for Perplexity / research agents
+  .ai/                     layout map + cross-tool artifacts
+  .claude/ .cursor/ .antigravity/ .perplexity/  — each tool's artifacts/ folder
 USAGE
 }
 
@@ -49,12 +49,12 @@ while [ $# -gt 0 ]; do
     --no-gitignore) NO_GITIGNORE=1; shift ;;
     --version) printf '%s\n' "init-ai-tooling.sh ${VERSION}"; exit 0 ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "Неизвестная опция: $1" >&2; usage; exit 2 ;;
+    *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
   esac
 done
 
 [ -n "$NAME" ] || NAME="$(basename "$(pwd)")"
-[ -n "$DESC" ] || DESC="TODO: короткое описание проекта"
+[ -n "$DESC" ] || DESC="TODO: short project description"
 DATE="$(date +%Y-%m-%d)"
 
 say() { printf '%s\n' "$*"; }
@@ -67,15 +67,15 @@ gitkeep() {
 }
 write_file() {
   local path="$1"
-  if [ -e "$path" ] && [ "$FORCE" != "1" ]; then say "skip   $path (уже есть)"; cat >/dev/null; return 0; fi
+  if [ -e "$path" ] && [ "$FORCE" != "1" ]; then say "skip   $path (already exists)"; cat >/dev/null; return 0; fi
   if [ "$DRYRUN" = "1" ]; then say "write  $path"; cat >/dev/null; return 0; fi
   mkdir -p "$(dirname "$path")"; cat > "$path"; say "write  $path"
 }
 escape_sed() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
-# Экранирование для подстановки внутрь JSON: кавычки и обратные слэши в имени проекта
-# иначе сделали бы .claude/settings.json невалидным.
+# Escape for JSON substitution: quotes and backslashes in the project name
+# would otherwise invalidate .claude/settings.json.
 escape_json() {
   printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
 }
@@ -91,112 +91,112 @@ render() {
       -e "s|__VERSION__|${safe_version}|g"
 }
 
-# ---------- каталоги artifacts + .gitkeep ----------
+# ---------- artifact directories + .gitkeep ----------
 for d in .ai/artifacts .claude/commands .claude/agents .claude/artifacts \
          .cursor/artifacts .antigravity/artifacts .perplexity/artifacts; do
   gitkeep "$d"
 done
 
 # ======================================================================
-# AGENTS.md — ИСТОЧНИК ИСТИНЫ
+# AGENTS.md — SOURCE OF TRUTH
 # ======================================================================
 render <<'TPL' | write_file "AGENTS.md"
 # AGENTS.md — __NAME__
 
-> **Источник истины для всех AI-инструментов и людей в этом репозитории.**
-> Файл читают нативно Cursor, Google Antigravity/Gemini и другие AGENTS-совместимые
-> инструменты. Тонкие редиректы (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`,
-> `PERPLEXITY.md`) дополняют, но не отменяют эти правила. **Прочитай целиком перед работой.**
+> **Single source of truth for all AI tools and humans in this repository.**
+> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
+> add detail but do not override these rules. **Read this file fully before working.**
 
-## 1. Проект
+## 1. Project
 __DESC__
 
-<!-- TODO: 2–4 предложения — назначение, пользователи, ценность. -->
+<!-- TODO: 2–4 sentences — purpose, users, value. -->
 
-## 2. Стек
-<!-- TODO: языки, фреймворки, БД, инфраструктура. -->
+## 2. Stack
+<!-- TODO: languages, frameworks, DB, infrastructure. -->
 
-## 3. Структура
-<!-- TODO: таблица «каталог → назначение». -->
+## 3. Structure
+<!-- TODO: table of "directory → purpose". -->
 
-## 4. Статус / текущий приоритет
-<!-- TODO: где сейчас проект, на чём фокус. -->
+## 4. Status / current priority
+<!-- TODO: where the project is now and what to focus on. -->
 
-## 5. Как вносить изменения (агент)
-- Работай через план: декомпозируй задачу и покажи шаги ДО исполнения.
-- Human-in-the-loop: для необратимых операций и правок прод-данных — остановись и спроси.
-- Формируй артефакты (diff, список изменённых файлов, план отката) до применения.
-- Изменения атомарные; объясняй ЧТО и ПОЧЕМУ.
-- Новый код — с тестами; задача не «done» при падающих тестах/линте.
+## 5. How to change things (agent)
+- Work from a plan: break the task down and show steps BEFORE executing.
+- Human-in-the-loop: for irreversible operations and production-data edits — stop and ask.
+- Produce artifacts (diff, list of changed files, rollback plan) before applying.
+- Keep changes atomic; explain WHAT and WHY.
+- New code ships with tests; the task is not "done" if tests/lint are failing.
 
-## 6. Безопасность (NEVER)
-- Прод не редактируется напрямую <!-- TODO: маршрут доставки, напр. local → staging → prod через git -->.
-- Секреты (пароли, ключи, токены, `.env`, локальные конфиги) — не коммитить и не выводить;
-  в репозитории только `*.example`.
-- Деструктивные операции над боевыми данными/БД — только с явным подтверждением и прогоном на копии.
-- <!-- TODO: проектные запреты (не трогать ядро/…). -->
+## 6. Security (NEVER)
+- Do not edit production directly <!-- TODO: delivery path, e.g. local → staging → prod via git -->.
+- Secrets (passwords, keys, tokens, `.env`, local configs) — never commit or print them;
+  the repo may only contain `*.example` files.
+- Destructive operations on production data/DB — only with explicit confirmation and a dry run on a copy.
+- <!-- TODO: project-specific bans (do not touch core/…). -->
 
 ## 7. Definition of Done
-- [ ] Изменение локально; секреты не попали в код/коммит.
-- [ ] Тесты/линт зелёные; при необходимости проверено на staging.
-- [ ] Diff отревьюен, есть план отката.
+- [ ] Change is local; secrets did not land in code/commit.
+- [ ] Tests/lint are green; verified on staging if needed.
+- [ ] Diff is reviewed; a rollback plan exists.
 
-## Раскладка инструментов
-Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.
+## Tool layout
+Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
 
-<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
+<!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
 
 # ======================================================================
-# .cursorrules — редирект
+# .cursorrules — redirect
 # ======================================================================
 render <<'TPL' | write_file ".cursorrules"
-# Cursor читает этот файл для совместимости. ИСТОЧНИК ИСТИНЫ — ./AGENTS.md.
-# Детальные правила — в ./.cursor/rules/*.mdc. Прочитай AGENTS.md перед любой работой.
-См. AGENTS.md
+# Cursor reads this file for compatibility. SOURCE OF TRUTH — ./AGENTS.md.
+# Detailed rules — ./.cursor/rules/*.mdc. Read AGENTS.md before any work.
+See AGENTS.md
 TPL
 
 # .cursor/rules/000-project.mdc
 render <<'TPL' | write_file ".cursor/rules/000-project.mdc"
 ---
-description: Базовый контекст проекта __NAME__ — указывает на AGENTS.md
+description: Base project context for __NAME__ — points to AGENTS.md
 alwaysApply: true
 ---
 
 # __NAME__
 
-Источник истины — `../../AGENTS.md` (прочитай целиком). Здесь и в соседних `*.mdc` —
-только Cursor-специфика и детальные тематические правила.
+Source of truth — `../../AGENTS.md` (read it fully). This file and sibling `*.mdc`
+files hold Cursor-specific and detailed topical rules only.
 TPL
 
 # .cursor/rules/010-safety.mdc
 render <<'TPL' | write_file ".cursor/rules/010-safety.mdc"
 ---
-description: Безопасность, секреты, работа с продом
+description: Security, secrets, production work
 alwaysApply: true
 ---
 
-# Безопасность
+# Security
 
-- Секреты (пароли, ключи, токены, `.env`, локальные конфиги) — не в код, коммиты или контекст.
-- Прод не редактируется напрямую; деструктивные операции над боевыми данными — только
-  с явным подтверждением и прогоном на копии.
-- Перед рискованной правкой — покажи diff и план отката, спроси подтверждение.
-- Полные правила — в `../../AGENTS.md`.
+- Secrets (passwords, keys, tokens, `.env`, local configs) — not in code, commits, or context.
+- Do not edit production directly; destructive operations on production data — only
+  with explicit confirmation and a dry run on a copy.
+- Before a risky change — show a diff and rollback plan, ask for confirmation.
+- Full rules — in `../../AGENTS.md`.
 TPL
 
 # .cursorignore
 render <<'TPL' | write_file ".cursorignore"
-# Секреты и локальный конфиг
+# Secrets and local config
 .env
 *.local
 
-# Артефакты сборки и данные
+# Build artifacts and data
 dist/
 build/
 *.egg-info/
 
-# Окружения и кэши
+# Environments and caches
 .venv/
 venv/
 node_modules/
@@ -210,33 +210,33 @@ __pycache__/
 TPL
 
 # ======================================================================
-# CLAUDE.md — редирект + Claude-специфика
+# CLAUDE.md — redirect + Claude specifics
 # ======================================================================
 render <<'TPL' | write_file "CLAUDE.md"
 # CLAUDE.md — __NAME__
 
-**Источник истины — [`AGENTS.md`](AGENTS.md). Прочитай его первым.** Ниже — только Claude-специфика.
+**Source of truth — [`AGENTS.md`](AGENTS.md). Read it first.** Below — Claude-specific only.
 
-## Директории Claude
-- `.claude/commands/` — slash-команды; `.claude/agents/` — субагенты; `.claude/artifacts/` — артефакты.
-- Командные настройки — `.claude/settings.json`; личные — `.claude/settings.local.json` (не коммить).
+## Claude directories
+- `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
+- Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).
 TPL
 
 # .claude/README.md
 render <<'TPL' | write_file ".claude/README.md"
-# .claude/ — конфигурация Claude Code
+# .claude/ — Claude Code configuration
 
-Источник истины — [`../AGENTS.md`](../AGENTS.md).
+Source of truth — [`../AGENTS.md`](../AGENTS.md).
 
-- `commands/` — slash-команды; `agents/` — субагенты; `artifacts/` — артефакты Claude.
-- `settings.json` — командные настройки; `settings.local.json` — личные (не коммить).
+- `commands/` — slash commands; `agents/` — subagents; `artifacts/` — Claude artifacts.
+- `settings.json` — team settings; `settings.local.json` — personal (do not commit).
 TPL
 
 # .claude/settings.json
 render <<'TPL' | write_file ".claude/settings.json"
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Командные настройки Claude Code для __NAME_JSON__. Личные оверрайды — в settings.local.json (не коммитить).",
+  "//": "Team Claude Code settings for __NAME_JSON__. Personal overrides — settings.local.json (do not commit).",
   "permissions": {
     "allow": ["Read", "Edit"],
     "deny": [
@@ -260,77 +260,77 @@ TPL
 render <<'TPL' | write_file "GEMINI.md"
 # GEMINI.md — Google Antigravity / Gemini
 
-> Antigravity читает и `AGENTS.md`, и `GEMINI.md`; при конфликте приоритет у `GEMINI.md`.
-> **Источник истины по проекту — `AGENTS.md`, прочитай первым.** Здесь — Antigravity/Gemini-специфика.
+> Antigravity reads both `AGENTS.md` and `GEMINI.md`; on conflict, `GEMINI.md` wins.
+> **Project source of truth — `AGENTS.md`; read it first.** Here — Antigravity/Gemini specifics.
 
-## Агентный режим
-- Работай через план (task/plan): декомпозируй задачу и покажи шаги до исполнения.
-- Human-in-the-loop: для правок прод-данных/ядра — остановись и запроси подтверждение.
-- Формируй артефакты (diff, список файлов, план отката) до применения; сохраняй в `.antigravity/artifacts/`.
-- Не выполняй shell-команды против боевого сервера/БД.
-- Изменения атомарные, с объяснением ЧТО и ПОЧЕМУ.
+## Agent mode
+- Work from a plan (task/plan): break the task down and show steps before executing.
+- Human-in-the-loop: for production-data/core edits — stop and ask for confirmation.
+- Produce artifacts (diff, file list, rollback plan) before applying; save them in `.antigravity/artifacts/`.
+- Do not run shell commands against a production server/DB.
+- Keep changes atomic, with an explanation of WHAT and WHY.
 TPL
 
 render <<'TPL' | write_file ".antigravity/README.md"
-# .antigravity/ — рабочая область Google Antigravity
+# .antigravity/ — Google Antigravity workspace
 
-Правила — в [`../GEMINI.md`](../GEMINI.md); источник истины — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — планы, task-list, walkthrough, записи браузера.
+Rules — in [`../GEMINI.md`](../GEMINI.md); source of truth — [`../AGENTS.md`](../AGENTS.md).
+`artifacts/` — plans, task lists, walkthroughs, browser recordings.
 TPL
 
 # ======================================================================
-# PERPLEXITY.md — бриф
+# PERPLEXITY.md — brief
 # ======================================================================
 render <<'TPL' | write_file "PERPLEXITY.md"
-# PERPLEXITY.md — бриф для Perplexity / research-агентов
+# PERPLEXITY.md — brief for Perplexity / research agents
 
-> У Perplexity нет нативного конфига репозитория. Этот файл — **брифинг**: вставь его в
-> промпт / Space (или Comet), чтобы задать роль, контекст и границы. Контекст проекта — из `AGENTS.md`.
+> Perplexity has no native repo config. This file is a **brief**: paste it into a
+> prompt / Space (or Comet) to set role, context, and boundaries. Project context comes from `AGENTS.md`.
 
-## Роль
-Исследовательский/контент-ассистент проекта __NAME__.
-<!-- TODO: уточни роль; пишет ли код; есть ли доступ к данным. -->
+## Role
+Research/content assistant for __NAME__.
+<!-- TODO: clarify the role; whether it writes code; data access. -->
 
-## Для чего использовать
-<!-- TODO: ресёрч, факт-чек, черновики, конкурентный анализ. -->
+## What to use it for
+<!-- TODO: research, fact-checking, drafts, competitive analysis. -->
 
-## Границы
-- Указывай источники для фактов; не выдумывай — помечай «уточнить».
-- <!-- TODO: доменные ограничения (реклама/медицина/юр. и т.п.). -->
+## Boundaries
+- Cite sources for facts; do not invent — mark unknowns as "needs verification".
+- <!-- TODO: domain limits (ads/medicine/legal/etc.). -->
 
-## Формат выдачи
-Структурированно (Markdown/таблица), удобно для переноса. Сохраняй как артефакт в `.perplexity/artifacts/`.
+## Output format
+Structured (Markdown/table), easy to transfer. Save as an artifact in `.perplexity/artifacts/`.
 TPL
 
 render <<'TPL' | write_file ".perplexity/README.md"
 # .perplexity/ — Perplexity / research
 
-Бриф для вставки — [`../PERPLEXITY.md`](../PERPLEXITY.md); контекст — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — сохранённые ресёрч-отчёты (`YYYY-MM-DD-тема.md`; в конце — источники для верификации).
+Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGENTS.md`](../AGENTS.md).
+`artifacts/` — saved research reports (`YYYY-MM-DD-topic.md`; end with sources for verification).
 TPL
 
 # ======================================================================
-# .ai/README.md — карта раскладки
+# .ai/README.md — layout map
 # ======================================================================
 render <<'TPL' | write_file ".ai/README.md"
-# .ai/ — раскладка AI-инструментов
+# .ai/ — AI tooling layout
 
-**Источник истины — [`../AGENTS.md`](../AGENTS.md)** (читается нативно Cursor,
-Antigravity/Gemini и др.). Остальные файлы — тонкие редиректы/специфика.
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
-| Инструмент | Файл | Артефакты |
+| Tool | File | Artifacts |
 |---|---|---|
-| Все агенты | `AGENTS.md` | `.ai/artifacts/` |
+| All agents | `AGENTS.md` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
-| Perplexity | `PERPLEXITY.md` (вставляемый бриф) | `.perplexity/artifacts/` |
+| Perplexity | `PERPLEXITY.md` (paste-in brief) | `.perplexity/artifacts/` |
 
-## Правило
-Меняется проект → правь **`AGENTS.md`**. Инструмент-специфика — в файле инструмента.
-Артефакт — сохраняемый результат, переживающий сессию (план, ресёрч, diff, task-list).
+## Rule
+Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
+An artifact is a durable session result (plan, research, diff, task list).
 
-<!-- Инициализировано init-ai-tooling __VERSION__ (__DATE__). -->
+<!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
 
 # ---------- .gitignore ----------
@@ -355,7 +355,7 @@ if [ "$NO_GITIGNORE" != "1" ]; then
 fi
 
 say ""
-say "Готово (${VERSION}): каркас AGENTS.md-модели развёрнут для «${NAME}»."
-say "Дальше: заполни TODO в AGENTS.md — все инструменты берут контекст оттуда."
-[ "$DRYRUN" = "1" ] && say "(dry-run: ничего не записано)"
+say "Done (${VERSION}): AGENTS.md-model scaffold deployed for \"${NAME}\"."
+say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
+[ "$DRYRUN" = "1" ] && say "(dry-run: nothing was written)"
 exit 0
