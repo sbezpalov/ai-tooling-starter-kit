@@ -1,12 +1,12 @@
 # AGENTS.md — ai-tooling-starter-kit
 
 > **Single source of truth for all AI tools and humans in this repository.**
-> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> Codex, Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
 > natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
 > add detail but do not override these rules. **Read this file fully before working.**
 
 ## 1. Project
-Starter kit that scaffolds a consistent AI-tooling layout (Claude, Cursor,
+Starter kit that scaffolds a consistent AI-tooling layout (Claude, Codex, Cursor,
 Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / PowerShell).
 
 <!-- TODO: 2–4 sentences — purpose, users, value. -->
@@ -26,7 +26,7 @@ Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / P
 
 ## 4. Status / current priority
 <!-- TODO: where the project is now and what to focus on. -->
-Release **1.0.0**. English is the default language for scaffolds and primary docs.
+Release **1.1.0**. English is the default language for scaffolds and primary docs.
 
 ## 5. How to change things (agent)
 - Work from a plan: break the task down and show steps BEFORE executing.
@@ -49,6 +49,7 @@ Release **1.0.0**. English is the default language for scaffolds and primary doc
 - [ ] Diff is reviewed; a rollback plan exists.
 
 ## Tool layout
-Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
+Shared artifacts live in `.ai/artifacts/`; tool-specific artifact folders are listed in
+`.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
 
-<!-- Initialized by init-ai-tooling 1.0.0 (2026-07-28). -->
+<!-- Initialized by init-ai-tooling 1.1.0 (2026-07-30). -->

@@ -1,36 +1,41 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
 
 One command that scaffolds a consistent config layout for the AI tools you actually use —
-**Claude, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
+**Claude, Codex, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **1.0.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **1.1.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
 ## The model (v2 — AGENTS.md)
 
-**`AGENTS.md` is the single source of truth.** Cursor, Google Antigravity/Gemini and other
+**`AGENTS.md` is the single source of truth.** Codex, Cursor, Google Antigravity/Gemini and other
 AGENTS-aware tools read it natively, so context needs no duplication and there is no
 "pointer file nobody opens". Everything else is a thin redirect or tool-specific detail.
 
 | File | Tool | Role |
 |------|------|------|
-| `AGENTS.md` | all agents | ★ project, stack, rules, DoD, security |
+| `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, stack, rules, DoD, security |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | redirect + rules (`000-project`, `010-safety`) |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | redirect + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | agent specifics (wins on conflict) |
 | `PERPLEXITY.md` | Perplexity | paste-in brief (role / boundaries / output format) |
 | `.ai/README.md` + `.ai/artifacts/` | — | layout map + cross-tool artifacts |
 
-Each tool gets its own artifacts folder: `.claude/artifacts/`, `.cursor/artifacts/`,
-`.antigravity/artifacts/`, `.perplexity/artifacts/`, plus a shared `.ai/artifacts/`.
+Tool-specific artifacts live in `.claude/artifacts/`, `.cursor/artifacts/`,
+`.antigravity/artifacts/`, and `.perplexity/artifacts/`; shared and Codex artifacts live
+in `.ai/artifacts/`.
+
+Codex needs no redirect file: it discovers `AGENTS.md` natively. The kit deliberately leaves
+`.codex/config.toml` optional because model, permission, and integration settings should be
+added only when a repository has a concrete need.
 
 > Why `AGENTS.md` rather than v1's `.ai/shared-context.md`: AGENTS is a growing cross-tool
 > convention read directly by the tools, which means one less layer of indirection.
@@ -137,5 +142,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 1.0.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 1.1.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_ai_tooling.py (1.0.0, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
+"""init_ai_tooling.py (1.1.0, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
 
-Scaffolds an AI tooling layout (Claude, Cursor, Antigravity/Gemini, Perplexity)
+Scaffolds an AI tooling layout (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
 in the current repository. Model: AGENTS.md = single source of truth; thin
 redirects at the root (.cursorrules, CLAUDE.md, GEMINI.md, PERPLEXITY.md); .ai/
 is for artifacts only.
@@ -20,7 +20,7 @@ import os
 from pathlib import Path
 import sys
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 # ---------------------------------------------------------------------------
 # Artifact directories (each gets a .gitkeep)
@@ -50,7 +50,7 @@ _add("AGENTS.md", """\
 # AGENTS.md — __NAME__
 
 > **Single source of truth for all AI tools and humans in this repository.**
-> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> Codex, Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
 > natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
 > add detail but do not override these rules. **Read this file fully before working.**
 
@@ -88,7 +88,8 @@ __DESC__
 - [ ] Diff is reviewed; a rollback plan exists.
 
 ## Tool layout
-Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
+Shared artifacts live in `.ai/artifacts/`; tool-specific artifact folders are listed in
+`.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 """)
@@ -241,12 +242,13 @@ Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGEN
 _add(".ai/README.md", """\
 # .ai/ — AI tooling layout
 
-**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Codex, Cursor,
 Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
 | Tool | File | Artifacts |
 |---|---|---|
 | All agents | `AGENTS.md` | `.ai/artifacts/` |
+| Codex (CLI / IDE / app) | `AGENTS.md` (native); optional `.codex/config.toml` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
@@ -254,7 +256,8 @@ Antigravity/Gemini, and others). Everything else is a thin redirect or tool-spec
 
 ## Rule
 Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
-An artifact is a durable session result (plan, research, diff, task list).
+Codex needs no redirect file; add `.codex/config.toml` only for concrete repository-specific
+settings. An artifact is a durable session result (plan, research, diff, task list).
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 """)
@@ -290,10 +293,11 @@ def main(argv=None):
         description="AI tooling scaffold (AGENTS.md model).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Creates: AGENTS.md (source of truth), .cursorrules + .cursor/rules/*.mdc + "
-            ".cursorignore, CLAUDE.md + .claude/, GEMINI.md + .antigravity/, "
+            "Creates: AGENTS.md (source of truth, read natively by Codex), "
+            ".cursorrules + .cursor/rules/*.mdc + .cursorignore, "
+            "CLAUDE.md + .claude/, GEMINI.md + .antigravity/, "
             "PERPLEXITY.md + .perplexity/, .ai/ (layout map + artifacts). "
-            "Each tool gets an artifacts/ folder."
+            "Tool-specific artifacts and shared/Codex artifacts are kept separate."
         ),
     )
     p.add_argument("--name", default="", help="Project name (defaults to the folder name).")

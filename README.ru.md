@@ -1,37 +1,42 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
 
-Единый каркас конфигов для базового набора AI-инструментов — **Claude, Cursor,
+Единый каркас конфигов для базового набора AI-инструментов — **Claude, Codex, Cursor,
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **1.0.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **1.1.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
 ## Модель (v2 — AGENTS.md)
 
-**`AGENTS.md` = единый источник истины.** Его читают нативно Cursor, Google
+**`AGENTS.md` = единый источник истины.** Его читают нативно Codex, Cursor, Google
 Antigravity/Gemini и другие AGENTS-совместимые инструменты — поэтому контекст не нужно
 дублировать и не нужен «файл-указатель, который никто не открывает». Остальные файлы —
 тонкие редиректы/специфика в корне.
 
 | Файл | Инструмент | Роль |
 |------|-----------|------|
-| `AGENTS.md` | все агенты | ★ проект, стек, правила, DoD, безопасность |
+| `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, стек, правила, DoD, безопасность |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | редирект + правила (`000-project`, `010-safety`) |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | редирект + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | агент-специфика (приоритет при конфликте) |
 | `PERPLEXITY.md` | Perplexity | вставляемый бриф (роль/границы/формат) |
 | `.ai/README.md` + `.ai/artifacts/` | — | карта раскладки + кросс-инструментальные артефакты |
 
-Артефакты у каждого инструмента: `.claude/artifacts/`, `.cursor/artifacts/`,
-`.antigravity/artifacts/`, `.perplexity/artifacts/`, плюс общий `.ai/artifacts/`.
+Инструментальные артефакты хранятся в `.claude/artifacts/`, `.cursor/artifacts/`,
+`.antigravity/artifacts/` и `.perplexity/artifacts/`; общие артефакты и результаты Codex —
+в `.ai/artifacts/`.
+
+Codex не нужен файл-редирект: он нативно находит `AGENTS.md`. Кит намеренно оставляет
+`.codex/config.toml` опциональным — модель, разрешения и интеграции стоит настраивать,
+только когда у конкретного репозитория есть такая потребность.
 
 > Почему AGENTS.md, а не `.ai/shared-context.md` (как в v1): AGENTS — растущий кросс-
 > инструментальный стандарт, читается инструментами напрямую → меньше косвенности.
@@ -137,5 +142,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 1.0.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 1.1.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# init-ai-tooling.sh (1.0.0, AGENTS.md model) — deploys an AI tooling scaffold
-# (Claude, Cursor, Antigravity/Gemini, Perplexity) in the current repository.
+# init-ai-tooling.sh (1.1.0, AGENTS.md model) — deploys an AI tooling scaffold
+# (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity) in the current repository.
 #
-# Model: AGENTS.md = single source of truth (read natively by Cursor,
+# Model: AGENTS.md = single source of truth (read natively by Codex, Cursor,
 # Antigravity/Gemini, and others). Everything else — thin redirect/specific files
 # at the root (.cursorrules, CLAUDE.md, GEMINI.md, PERPLEXITY.md). `.ai/` — artifacts only.
 #
 # Idempotent (without --force does not touch existing files). Self-contained (templates inside).
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; NO_GITIGNORE=0
 
 usage() {
@@ -29,14 +29,14 @@ Options:
   -h, --help        Show this help.
 
 Creates:
-  AGENTS.md                ★ source of truth (project + agent rules)
+  AGENTS.md                ★ source of truth (native Codex + all agent rules)
   .cursorrules             redirect → AGENTS.md (legacy Cursor)
   .cursor/rules/*.mdc      detailed rules (000-project, 010-safety) + .cursorignore
   CLAUDE.md                redirect → AGENTS.md (Claude Code / Cowork)
   GEMINI.md                Antigravity/Gemini specifics (wins on conflict)
   PERPLEXITY.md            paste-in brief for Perplexity / research agents
-  .ai/                     layout map + cross-tool artifacts
-  .claude/ .cursor/ .antigravity/ .perplexity/  — each tool's artifacts/ folder
+  .ai/                     layout map + shared/Codex artifacts
+  .claude/ .cursor/ .antigravity/ .perplexity/  — tool-specific artifacts
 USAGE
 }
 
@@ -104,7 +104,7 @@ render <<'TPL' | write_file "AGENTS.md"
 # AGENTS.md — __NAME__
 
 > **Single source of truth for all AI tools and humans in this repository.**
-> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> Codex, Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
 > natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
 > add detail but do not override these rules. **Read this file fully before working.**
 
@@ -142,7 +142,8 @@ __DESC__
 - [ ] Diff is reviewed; a rollback plan exists.
 
 ## Tool layout
-Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
+Shared artifacts live in `.ai/artifacts/`; tool-specific artifact folders are listed in
+`.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
@@ -315,12 +316,13 @@ TPL
 render <<'TPL' | write_file ".ai/README.md"
 # .ai/ — AI tooling layout
 
-**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Codex, Cursor,
 Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
 | Tool | File | Artifacts |
 |---|---|---|
 | All agents | `AGENTS.md` | `.ai/artifacts/` |
+| Codex (CLI / IDE / app) | `AGENTS.md` (native); optional `.codex/config.toml` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
@@ -328,7 +330,8 @@ Antigravity/Gemini, and others). Everything else is a thin redirect or tool-spec
 
 ## Rule
 Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
-An artifact is a durable session result (plan, research, diff, task list).
+Codex needs no redirect file; add `.codex/config.toml` only for concrete repository-specific
+settings. An artifact is a durable session result (plan, research, diff, task list).
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 TPL
