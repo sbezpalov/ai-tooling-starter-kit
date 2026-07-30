@@ -1,9 +1,9 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (1.0.0, AGENTS.md model) — PowerShell version for Windows 11/10.
+    init-ai-tooling.ps1 (1.1.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
 .DESCRIPTION
-    Deploys an AI tooling scaffold (Claude, Cursor, Antigravity/Gemini, Perplexity)
+    Deploys an AI tooling scaffold (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
     in the current repository. Model: AGENTS.md = single source of truth.
 
 .PARAMETER Name
@@ -40,7 +40,7 @@ param (
 )
 
 # Separate constant from -Version: PowerShell variable names are case-insensitive.
-$ToolVersion = "1.0.0"
+$ToolVersion = "1.1.0"
 
 $ErrorActionPreference = "Stop"
 
@@ -162,7 +162,7 @@ $AgentsMd = @'
 # AGENTS.md — __NAME__
 
 > **Single source of truth for all AI tools and humans in this repository.**
-> Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
+> Codex, Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
 > natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
 > add detail but do not override these rules. **Read this file fully before working.**
 
@@ -200,7 +200,8 @@ __DESC__
 - [ ] Diff is reviewed; a rollback plan exists.
 
 ## Tool layout
-Artifacts live in `.ai/artifacts/` (cross-tool) and `.<tool>/artifacts/`. Details — `.ai/README.md`.
+Shared artifacts live in `.ai/artifacts/`; tool-specific artifact folders are listed in
+`.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 '@
@@ -353,12 +354,13 @@ Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGEN
 $AiReadme = @'
 # .ai/ — AI tooling layout
 
-**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Cursor,
+**Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Codex, Cursor,
 Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
 
 | Tool | File | Artifacts |
 |---|---|---|
 | All agents | `AGENTS.md` | `.ai/artifacts/` |
+| Codex (CLI / IDE / app) | `AGENTS.md` (native); optional `.codex/config.toml` | `.ai/artifacts/` |
 | Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
 | Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
 | Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
@@ -366,7 +368,8 @@ Antigravity/Gemini, and others). Everything else is a thin redirect or tool-spec
 
 ## Rule
 Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
-An artifact is a durable session result (plan, research, diff, task list).
+Codex needs no redirect file; add `.codex/config.toml` only for concrete repository-specific
+settings. An artifact is a durable session result (plan, research, diff, task list).
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 '@

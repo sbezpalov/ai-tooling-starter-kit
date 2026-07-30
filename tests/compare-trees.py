@@ -19,6 +19,23 @@ import sys
 
 SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? \d+\.\d+\.\d+")
 
+CODEX_CONTRACT = {
+    "AGENTS.md": (
+        b"Codex, Cursor, Google Antigravity/Gemini",
+        b"Codex reads this file natively and uses the shared artifacts directory.",
+    ),
+    ".ai/README.md": (
+        b"| Codex (CLI / IDE / app) |",
+        b"optional `.codex/config.toml`",
+    ),
+}
+
+CODEX_FORBIDDEN_PATHS = {
+    "CODEX.md",
+    ".codex/config.toml",
+    ".codex/artifacts/.gitkeep",
+}
+
 
 def configure_stdio():
     """UTF-8 stdout/stderr: otherwise Windows (cp1252) can fail on non-ASCII prints."""
@@ -42,6 +59,24 @@ def snapshot(root):
     return files
 
 
+def validate_codex_contract(files, root):
+    """Verify explicit native Codex support without redundant Codex files."""
+    problems = []
+    for rel, required_fragments in CODEX_CONTRACT.items():
+        content = files.get(rel)
+        if content is None:
+            problems.append("Codex contract missing in %s: %s" % (root, rel))
+            continue
+        for fragment in required_fragments:
+            if fragment not in content:
+                problems.append(
+                    "Codex contract text missing in %s: %s" % (root, rel)
+                )
+    for rel in sorted(CODEX_FORBIDDEN_PATHS & set(files)):
+        problems.append("Codex contract forbids generated path in %s: %s" % (root, rel))
+    return problems
+
+
 def main(argv):
     if len(argv) != 3:
         print(__doc__)
@@ -59,6 +94,8 @@ def main(argv):
             problems.append("content differs: %s" % rel)
             if b"\r\n" in a[rel] or b"\r\n" in b[rel]:
                 problems.append("    ^ CRLF found — LF expected on every OS")
+
+    problems.extend(validate_codex_contract(a, a_root))
 
     if problems:
         print("DIFFERENCES (%d):" % len(problems))
