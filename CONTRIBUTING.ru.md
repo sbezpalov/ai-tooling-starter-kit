@@ -6,19 +6,26 @@ English: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Главное правило
 
-**Три реализации обязаны оставаться эквивалентными.** Любое изменение поведения —
-новый шаблон, новый флаг, правка текста в генерируемых файлах — вносится
-**одновременно во все три скрипта**:
+**Три реализации в каждом семействе обязаны оставаться эквивалентными.** Любое
+изменение поведения — новый шаблон, новый флаг, правка текста — вносится
+**одновременно во все три скрипта затронутого семейства**.
+
+AI-семейство:
 
 - `init-ai-tooling.sh`
 - `init_ai_tooling.py`
 - `init-ai-tooling.ps1`
 
-CI сравнивает развёрнутые деревья побайтово и упадёт, если хоть один символ разошёлся.
+Repo-bootstrap семейство (то же правило):
 
-При бампе релиза синхронно обновите `VERSION` / `$ToolVersion` во всех трёх скриптах,
-подписи/справку (они читают константу), `CHANGELOG.md` (+ `CHANGELOG.ru.md`) и badge
-версии в обоих README.
+- `init-repo-bootstrap.sh`
+- `init_repo_bootstrap.py`
+- `init-repo-bootstrap.ps1`
+
+CI сравнивает деревья побайтово (AI, repo и `--also-repo`) и упадёт при расхождении.
+
+При бампе релиза синхронно обновите `VERSION` / `$ToolVersion` в **обоих** семействах,
+подписи/справку, `CHANGELOG.md` (+ `CHANGELOG.ru.md`) и badge версии в обоих README.
 
 Проверить локально до пуша:
 
@@ -27,6 +34,11 @@ mkdir -p /tmp/a /tmp/b
 (cd /tmp/a && ./init-ai-tooling.sh --name demo --desc "Test")
 (cd /tmp/b && python3 ./init_ai_tooling.py --name demo --desc "Test")
 python3 tests/compare-trees.py /tmp/a /tmp/b     # ожидается "Trees are identical"
+
+mkdir -p /tmp/ra /tmp/rb
+(cd /tmp/ra && ./init-repo-bootstrap.sh --name demo --desc "Test" --profile full)
+(cd /tmp/rb && python3 ./init_repo_bootstrap.py --name demo --desc "Test" --profile full)
+python3 tests/compare-trees.py /tmp/ra /tmp/rb
 ```
 
 PowerShell-версию без Windows локально не проверить — её возьмёт на себя CI

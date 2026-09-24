@@ -1,0 +1,269 @@
+#!/usr/bin/env bash
+# init-repo-bootstrap.sh (1.2.0) — community/git repository bootstrap companion.
+#
+# Scaffolds inert governance stubs and optional GitHub community files.
+# Does NOT choose a real license. Complements init-ai-tooling.sh.
+#
+# Idempotent (without --force does not touch existing files). Self-contained.
+set -euo pipefail
+
+VERSION="1.2.0"
+NAME=""; DESC=""; FORCE=0; DRYRUN=0; PROFILE="core"
+
+usage() {
+  cat <<USAGE
+init-repo-bootstrap.sh (${VERSION}) — community/git repository bootstrap.
+
+Usage:
+  init-repo-bootstrap.sh [--name NAME] [--desc "DESC"] [--profile core|github|full]
+                         [--force] [--dry-run]
+
+Options:
+  --name NAME           Project name (defaults to the folder name).
+  --desc TEXT           Short one-line description.
+  --profile PROFILE     core (default) | github | full
+  --force               Overwrite existing files.
+  --dry-run             Print the plan, write nothing.
+  --version             Print version and exit.
+  -h, --help            Show this help.
+
+Profiles:
+  core    LICENSE stub, SECURITY.md, CHANGELOG.md, CONTRIBUTING.md
+  github  core + CODEOWNERS, issue/PR templates
+  full    github + Dependabot stub
+
+Does not choose a real license. Pair with init-ai-tooling.sh via --also-repo.
+USAGE
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --name) NAME="${2:-}"; shift 2 ;;
+    --desc) DESC="${2:-}"; shift 2 ;;
+    --profile)
+      PROFILE="${2:-}"
+      case "$PROFILE" in
+        core|github|full) ;;
+        *) echo "Unknown profile: $PROFILE (expected core|github|full)" >&2; exit 2 ;;
+      esac
+      shift 2
+      ;;
+    --force) FORCE=1; shift ;;
+    --dry-run) DRYRUN=1; shift ;;
+    --version) printf '%s\n' "init-repo-bootstrap.sh ${VERSION}"; exit 0 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
+  esac
+done
+
+[ -n "$NAME" ] || NAME="$(basename "$(pwd)")"
+[ -n "$DESC" ] || DESC="TODO: short project description"
+DATE="$(date +%Y-%m-%d)"
+YEAR="$(date +%Y)"
+
+say() { printf '%s\n' "$*"; }
+write_file() {
+  local path="$1"
+  if [ -e "$path" ] && [ "$FORCE" != "1" ]; then say "skip   $path (already exists)"; cat >/dev/null; return 0; fi
+  if [ "$DRYRUN" = "1" ]; then say "write  $path"; cat >/dev/null; return 0; fi
+  mkdir -p "$(dirname "$path")"; cat > "$path"; say "write  $path"
+}
+escape_sed() {
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+render() {
+  local safe_name safe_desc safe_date safe_year safe_version
+  safe_name="$(escape_sed "$NAME")"
+  safe_desc="$(escape_sed "$DESC")"
+  safe_date="$(escape_sed "$DATE")"
+  safe_year="$(escape_sed "$YEAR")"
+  safe_version="$(escape_sed "$VERSION")"
+  sed -e "s|__NAME__|${safe_name}|g" \
+      -e "s|__DESC__|${safe_desc}|g" \
+      -e "s|__DATE__|${safe_date}|g" \
+      -e "s|__YEAR__|${safe_year}|g" \
+      -e "s|__VERSION__|${safe_version}|g"
+}
+
+# ======================================================================
+# core
+# ======================================================================
+render <<'TPL' | write_file "LICENSE"
+LICENSE NOT CHOSEN
+==================
+
+This is an inert stub written by init-repo-bootstrap. It is NOT a grant of rights.
+
+TODO:
+1. Choose a license (MIT, Apache-2.0, proprietary, …).
+2. Replace this entire file with the official license text.
+3. Update README / package metadata to match.
+
+Copyright holder placeholder: __NAME__ authors
+Year placeholder: __YEAR__
+
+Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+TPL
+
+render <<'TPL' | write_file "SECURITY.md"
+# Security Policy
+
+<!-- TODO: replace the contact channel below with a real one before publishing. -->
+
+## Supported versions
+
+Security fixes ship only for the current state of the default branch.
+
+## Reporting a vulnerability
+
+Please **do not open a public issue** for exploitable problems until they are fixed.
+
+1. Prefer a private channel (GitHub Security Advisories / `Security` tab).
+2. If that is unavailable — email `TODO: security@example.com` with a subject
+   starting with `SECURITY:`.
+
+Expect an initial reply within a few days. There is no formal SLA until you
+define one.
+
+## Scope notes for __NAME__
+
+__DESC__
+
+<!-- TODO: document what is in scope, what is out of scope, and safe harbor. -->
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+TPL
+
+render <<'TPL' | write_file "CHANGELOG.md"
+# Changelog
+
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+
+- Project bootstrap for __NAME__.
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+TPL
+
+render <<'TPL' | write_file "CONTRIBUTING.md"
+# Contributing
+
+Thanks for your interest in __NAME__.
+
+## How to contribute
+
+1. Open an issue describing the change (or claim an existing one).
+2. Keep pull requests focused; explain WHAT and WHY.
+3. Add or update tests when behaviour changes.
+4. Do not commit secrets (`.env`, keys, tokens).
+
+## Local checks
+
+<!-- TODO: document lint, test, and format commands for this repository. -->
+
+```bash
+# TODO: replace with the project's real verification commands
+echo "No project checks defined yet"
+```
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+TPL
+
+# ======================================================================
+# github (+ full)
+# ======================================================================
+if [ "$PROFILE" = "github" ] || [ "$PROFILE" = "full" ]; then
+  render <<'TPL' | write_file ".github/CODEOWNERS"
+# TODO: replace @TODO-OWNER with real GitHub usernames or teams.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+*       @TODO-OWNER
+TPL
+
+  render <<'TPL' | write_file ".github/PULL_REQUEST_TEMPLATE.md"
+## Summary
+
+<!-- What changed and why? -->
+
+## Test plan
+
+- [ ] Documented how this was verified
+- [ ] No secrets in the diff
+
+## Related
+
+<!-- Issues / tickets -->
+TPL
+
+  render <<'TPL' | write_file ".github/ISSUE_TEMPLATE/bug_report.md"
+---
+name: Bug report
+about: Something is broken
+title: ""
+labels: bug
+assignees: ""
+---
+
+## What happened
+
+<!-- Observed behaviour -->
+
+## What you expected
+
+<!-- Expected behaviour -->
+
+## Steps to reproduce
+
+1.
+2.
+3.
+
+## Environment
+
+- OS:
+- Version / commit:
+TPL
+
+  render <<'TPL' | write_file ".github/ISSUE_TEMPLATE/feature_request.md"
+---
+name: Feature request
+about: Suggest an improvement
+title: ""
+labels: enhancement
+assignees: ""
+---
+
+## Problem
+
+<!-- What pain does this solve? -->
+
+## Proposal
+
+<!-- Concrete suggestion -->
+
+## Alternatives considered
+
+<!-- Optional -->
+TPL
+fi
+
+if [ "$PROFILE" = "full" ]; then
+  render <<'TPL' | write_file ".github/dependabot.yml"
+# TODO: enable only after reviewing update cadence and review assignees.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+TPL
+fi
+
+say ""
+say "Done (${VERSION}): repo-bootstrap profile \"${PROFILE}\" for \"${NAME}\"."
+say "Next: replace LICENSE stub and fill SECURITY contact TODOs."
+[ "$DRYRUN" = "1" ] && say "(dry-run: nothing was written)"
+exit 0

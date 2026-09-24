@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""init_repo_bootstrap.py (1.2.0) — community/git repository bootstrap companion.
+
+Scaffolds inert governance stubs (LICENSE placeholder, SECURITY, CHANGELOG,
+CONTRIBUTING) and optional GitHub community files. Does NOT choose a real
+license for you. Complements init_ai_tooling.py; keep the AI scaffolder pure.
+
+Pure stdlib (Python 3.6+). Idempotent (without --force does not touch existing
+files). Writes LF line endings on every OS. Output matches the bash / PowerShell
+companions.
+
+Usage:
+    python3 init_repo_bootstrap.py [--name NAME] [--desc "DESC"]
+        [--profile core|github|full] [--force] [--dry-run]
+"""
+import argparse
+import datetime
+import os
+from pathlib import Path
+import sys
+
+VERSION = "1.2.0"
+PROFILES = ("core", "github", "full")
+
+# ---------------------------------------------------------------------------
+# Templates (placeholders __NAME__ / __DESC__ / __DATE__ / __YEAR__ / __VERSION__)
+# ---------------------------------------------------------------------------
+CORE_FILES = []  # list of (path, content)
+GITHUB_FILES = []
+FULL_EXTRA_FILES = []
+
+
+def _add(bucket, path, content):
+    bucket.append((path, content))
+
+
+_add(CORE_FILES, "LICENSE", """\
+LICENSE NOT CHOSEN
+==================
+
+This is an inert stub written by init-repo-bootstrap. It is NOT a grant of rights.
+
+TODO:
+1. Choose a license (MIT, Apache-2.0, proprietary, …).
+2. Replace this entire file with the official license text.
+3. Update README / package metadata to match.
+
+Copyright holder placeholder: __NAME__ authors
+Year placeholder: __YEAR__
+
+Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+""")
+
+_add(CORE_FILES, "SECURITY.md", """\
+# Security Policy
+
+<!-- TODO: replace the contact channel below with a real one before publishing. -->
+
+## Supported versions
+
+Security fixes ship only for the current state of the default branch.
+
+## Reporting a vulnerability
+
+Please **do not open a public issue** for exploitable problems until they are fixed.
+
+1. Prefer a private channel (GitHub Security Advisories / `Security` tab).
+2. If that is unavailable — email `TODO: security@example.com` with a subject
+   starting with `SECURITY:`.
+
+Expect an initial reply within a few days. There is no formal SLA until you
+define one.
+
+## Scope notes for __NAME__
+
+__DESC__
+
+<!-- TODO: document what is in scope, what is out of scope, and safe harbor. -->
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+""")
+
+_add(CORE_FILES, "CHANGELOG.md", """\
+# Changelog
+
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+
+- Project bootstrap for __NAME__.
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+""")
+
+_add(CORE_FILES, "CONTRIBUTING.md", """\
+# Contributing
+
+Thanks for your interest in __NAME__.
+
+## How to contribute
+
+1. Open an issue describing the change (or claim an existing one).
+2. Keep pull requests focused; explain WHAT and WHY.
+3. Add or update tests when behaviour changes.
+4. Do not commit secrets (`.env`, keys, tokens).
+
+## Local checks
+
+<!-- TODO: document lint, test, and format commands for this repository. -->
+
+```bash
+# TODO: replace with the project's real verification commands
+echo "No project checks defined yet"
+```
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+""")
+
+_add(GITHUB_FILES, ".github/CODEOWNERS", """\
+# TODO: replace @TODO-OWNER with real GitHub usernames or teams.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+*       @TODO-OWNER
+""")
+
+_add(GITHUB_FILES, ".github/PULL_REQUEST_TEMPLATE.md", """\
+## Summary
+
+<!-- What changed and why? -->
+
+## Test plan
+
+- [ ] Documented how this was verified
+- [ ] No secrets in the diff
+
+## Related
+
+<!-- Issues / tickets -->
+""")
+
+_add(GITHUB_FILES, ".github/ISSUE_TEMPLATE/bug_report.md", """\
+---
+name: Bug report
+about: Something is broken
+title: ""
+labels: bug
+assignees: ""
+---
+
+## What happened
+
+<!-- Observed behaviour -->
+
+## What you expected
+
+<!-- Expected behaviour -->
+
+## Steps to reproduce
+
+1.
+2.
+3.
+
+## Environment
+
+- OS:
+- Version / commit:
+""")
+
+_add(GITHUB_FILES, ".github/ISSUE_TEMPLATE/feature_request.md", """\
+---
+name: Feature request
+about: Suggest an improvement
+title: ""
+labels: enhancement
+assignees: ""
+---
+
+## Problem
+
+<!-- What pain does this solve? -->
+
+## Proposal
+
+<!-- Concrete suggestion -->
+
+## Alternatives considered
+
+<!-- Optional -->
+""")
+
+_add(FULL_EXTRA_FILES, ".github/dependabot.yml", """\
+# TODO: enable only after reviewing update cadence and review assignees.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+""")
+
+
+def say(msg=""):
+    print(msg)
+
+
+def render(text, name, desc, date, year, version=VERSION):
+    return (text.replace("__NAME__", name)
+                .replace("__DESC__", desc)
+                .replace("__DATE__", date)
+                .replace("__YEAR__", year)
+                .replace("__VERSION__", version))
+
+
+def files_for_profile(profile):
+    out = list(CORE_FILES)
+    if profile in ("github", "full"):
+        out.extend(GITHUB_FILES)
+    if profile == "full":
+        out.extend(FULL_EXTRA_FILES)
+    return out
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(
+        prog="init_repo_bootstrap.py",
+        description="Community/git repository bootstrap (inert stubs).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Profiles:\n"
+            "  core    LICENSE stub, SECURITY.md, CHANGELOG.md, CONTRIBUTING.md\n"
+            "  github  core + CODEOWNERS, issue/PR templates\n"
+            "  full    github + Dependabot stub\n"
+            "Does not choose a real license. Pair with init_ai_tooling.py via --also-repo."
+        ),
+    )
+    p.add_argument("--name", default="", help="Project name (defaults to the folder name).")
+    p.add_argument("--desc", default="", help="One-line description.")
+    p.add_argument(
+        "--profile",
+        default="core",
+        choices=PROFILES,
+        help="Artifact set to write (default: core; AI --also-repo defaults to full).",
+    )
+    p.add_argument("--force", action="store_true", help="Overwrite existing files.")
+    p.add_argument("--dry-run", action="store_true", help="Print the plan, write nothing.")
+    p.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s " + VERSION,
+        help="Print version and exit.",
+    )
+    args = p.parse_args(argv)
+
+    name = args.name or os.path.basename(os.getcwd())
+    desc = args.desc or "TODO: short project description"
+    today = datetime.date.today()
+    date = today.isoformat()
+    year = str(today.year)
+    force, dry = args.force, args.dry_run
+    profile = args.profile
+
+    def write_file(path_str, content):
+        path = Path(path_str)
+        if path.exists() and not force:
+            say("skip   " + path_str + " (already exists)")
+            return
+        if dry:
+            say("write  " + path_str)
+            return
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(content)
+            say("write  " + path_str)
+        except OSError as e:
+            say("error  failed to write %s: %s" % (path_str, e))
+            sys.exit(1)
+
+    for rel, tpl in files_for_profile(profile):
+        write_file(rel, render(tpl, name, desc, date, year))
+
+    say("")
+    say('Done (%s): repo-bootstrap profile "%s" for "%s".' % (VERSION, profile, name))
+    say("Next: replace LICENSE stub and fill SECURITY contact TODOs.")
+    if dry:
+        say("(dry-run: nothing was written)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

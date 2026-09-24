@@ -7,15 +7,24 @@ Russian translation: [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md).
 ## The one rule
 
 **All three implementations must stay equivalent.** Any behaviour change — new template,
-new flag, edit to generated text — lands in **all three scripts at once**:
+new flag, edit to generated text — lands in **all three scripts of that family at once**.
+
+AI family:
 
 - `init-ai-tooling.sh`
 - `init_ai_tooling.py`
 - `init-ai-tooling.ps1`
 
-CI compares the scaffolded trees byte for byte and fails if a single character diverges.
+Repo-bootstrap family (same rule):
 
-When bumping a release, update `VERSION` / `$ToolVersion` in all three scripts,
+- `init-repo-bootstrap.sh`
+- `init_repo_bootstrap.py`
+- `init-repo-bootstrap.ps1`
+
+CI compares scaffolded trees byte for byte (AI trees, repo trees, and `--also-repo`
+combined trees) and fails if a single character diverges.
+
+When bumping a release, update `VERSION` / `$ToolVersion` in **both** families,
 signatures/help (they read the constant), `CHANGELOG.md` (+ `CHANGELOG.ru.md` if present),
 and the version badge in both READMEs.
 
@@ -26,6 +35,11 @@ mkdir -p /tmp/a /tmp/b
 (cd /tmp/a && ./init-ai-tooling.sh --name demo --desc "Test")
 (cd /tmp/b && python3 ./init_ai_tooling.py --name demo --desc "Test")
 python3 tests/compare-trees.py /tmp/a /tmp/b     # expect "Trees are identical"
+
+mkdir -p /tmp/ra /tmp/rb
+(cd /tmp/ra && ./init-repo-bootstrap.sh --name demo --desc "Test" --profile full)
+(cd /tmp/rb && python3 ./init_repo_bootstrap.py --name demo --desc "Test" --profile full)
+python3 tests/compare-trees.py /tmp/ra /tmp/rb
 ```
 
 The PowerShell script cannot be verified locally without Windows — CI covers it

@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (1.1.0, AGENTS.md model) — PowerShell version for Windows 11/10.
+    init-ai-tooling.ps1 (1.2.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
 .DESCRIPTION
     Deploys an AI tooling scaffold (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
@@ -21,6 +21,12 @@
 .PARAMETER NoGitignore
     Leave .gitignore alone.
 
+.PARAMETER AlsoRepo
+    Also run sibling init-repo-bootstrap.ps1 (B+).
+
+.PARAMETER RepoProfile
+    Profile for -AlsoRepo: core | github | full (default: full).
+
 .PARAMETER Version
     Print version and exit.
 
@@ -36,11 +42,14 @@ param (
     [switch]$Force,
     [switch]$DryRun,
     [switch]$NoGitignore,
+    [switch]$AlsoRepo,
+    [ValidateSet("core", "github", "full")]
+    [string]$RepoProfile = "full",
     [switch]$Version
 )
 
 # Separate constant from -Version: PowerShell variable names are case-insensitive.
-$ToolVersion = "1.1.0"
+$ToolVersion = "1.2.0"
 
 $ErrorActionPreference = "Stop"
 
@@ -421,6 +430,29 @@ if (-not $NoGitignore) {
 Say ""
 Say "Done (${ToolVersion}): AGENTS.md-model scaffold deployed for `"$Name`"."
 Say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
-if ($DryRun) {
+
+if ($AlsoRepo) {
+    $companion = Join-Path $PSScriptRoot "init-repo-bootstrap.ps1"
+    if (-not (Test-Path $companion)) {
+        throw "AlsoRepo requires init-repo-bootstrap.ps1 next to this script: $companion"
+    }
+    Say ""
+    Say "Also-repo: invoking init-repo-bootstrap.ps1 -Profile $RepoProfile"
+    $companionArgs = @{
+        Name = $Name
+        Desc = $Desc
+        Profile = $RepoProfile
+    }
+    if ($Force) { $companionArgs.Force = $true }
+    if ($DryRun) { $companionArgs.DryRun = $true }
+    & $companion @companionArgs
+    if (-not $?) {
+        exit 1
+    }
+} else {
+    Say "Tip: run init-repo-bootstrap.ps1 (or re-run with -AlsoRepo) for LICENSE/SECURITY/CHANGELOG stubs."
+}
+
+if ($DryRun -and -not $AlsoRepo) {
     Say "(dry-run: nothing was written)"
 }

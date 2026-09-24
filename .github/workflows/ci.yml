@@ -21,16 +21,18 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y shellcheck
-          shellcheck init-ai-tooling.sh
+          shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
 
       - name: python syntax
-        run: python3 -m py_compile init_ai_tooling.py tests/compare-trees.py
+        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py
 
       - name: dry-run must write nothing
         run: |
           mkdir -p "$RUNNER_TEMP/dry" && cd "$RUNNER_TEMP/dry"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI" --dry-run
           python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI" --dry-run
+          bash "$GITHUB_WORKSPACE/init-repo-bootstrap.sh" --name ci-demo --desc "CI" --profile full --dry-run
+          python3 "$GITHUB_WORKSPACE/init_repo_bootstrap.py" --name ci-demo --desc "CI" --profile full --dry-run
           test -z "$(ls -A .)" || { echo "dry-run created files!"; ls -Ra .; exit 1; }
 
       - name: scaffold with bash
@@ -45,6 +47,20 @@ jobs:
 
       - name: bash == python
         run: python3 tests/compare-trees.py "$RUNNER_TEMP/tree-bash" "$RUNNER_TEMP/tree-py"
+
+      - name: repo-bootstrap bash == python (full)
+        run: |
+          mkdir -p "$RUNNER_TEMP/repo-bash" "$RUNNER_TEMP/repo-py"
+          (cd "$RUNNER_TEMP/repo-bash" && bash "$GITHUB_WORKSPACE/init-repo-bootstrap.sh" --name ci-demo --desc "CI" --profile full)
+          (cd "$RUNNER_TEMP/repo-py" && python3 "$GITHUB_WORKSPACE/init_repo_bootstrap.py" --name ci-demo --desc "CI" --profile full)
+          python3 tests/compare-trees.py "$RUNNER_TEMP/repo-bash" "$RUNNER_TEMP/repo-py"
+
+      - name: also-repo bash == python
+        run: |
+          mkdir -p "$RUNNER_TEMP/also-bash" "$RUNNER_TEMP/also-py"
+          (cd "$RUNNER_TEMP/also-bash" && bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI" --also-repo --repo-profile full --no-gitignore)
+          (cd "$RUNNER_TEMP/also-py" && python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "CI" --also-repo --repo-profile full --no-gitignore)
+          python3 tests/compare-trees.py "$RUNNER_TEMP/also-bash" "$RUNNER_TEMP/also-py"
 
       - name: idempotency (re-run changes nothing)
         run: |
@@ -63,6 +79,18 @@ jobs:
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
+          include-hidden-files: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tree-repo-bash
+          path: ${{ runner.temp }}/repo-bash
+          include-hidden-files: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tree-also-bash
+          path: ${{ runner.temp }}/also-bash
           include-hidden-files: true
 
   # Two separate jobs instead of matrix.shell: step-level shell: ${{ matrix.* }}
@@ -84,21 +112,36 @@ jobs:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-repo-bash
+          path: ${{ runner.temp }}/tree-repo-bash
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-also-bash
+          path: ${{ runner.temp }}/also-bash
+
       - name: PSScriptAnalyzer
         shell: pwsh
         run: |
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
-          $all = Invoke-ScriptAnalyzer -Path ./init-ai-tooling.ps1
-          $all | Format-Table -AutoSize | Out-String | Write-Host
-          $errors = @($all | Where-Object Severity -eq 'Error')
-          if ($errors.Count) { throw "PSScriptAnalyzer: $($errors.Count) error(s)" }
+          foreach ($script in @('./init-ai-tooling.ps1', './init-repo-bootstrap.ps1')) {
+            $all = Invoke-ScriptAnalyzer -Path $script
+            Write-Host "=== $script ==="
+            $all | Format-Table -AutoSize | Out-String | Write-Host
+            $errors = @($all | Where-Object Severity -eq 'Error')
+            if ($errors.Count) { throw "PSScriptAnalyzer ($script): $($errors.Count) error(s)" }
+          }
 
       - name: .ps1 must be UTF-8 with BOM
         shell: pwsh
         run: |
-          $b = [System.IO.File]::ReadAllBytes("./init-ai-tooling.ps1")
-          if ($b[0] -ne 0xEF -or $b[1] -ne 0xBB -or $b[2] -ne 0xBF) {
-            throw "Missing BOM: Windows PowerShell 5.1 would read the file as ANSI."
+          foreach ($script in @('./init-ai-tooling.ps1', './init-repo-bootstrap.ps1')) {
+            $b = [System.IO.File]::ReadAllBytes($script)
+            if ($b[0] -ne 0xEF -or $b[1] -ne 0xBB -or $b[2] -ne 0xBF) {
+              throw "Missing BOM in $script: Windows PowerShell 5.1 would read the file as ANSI."
+            }
           }
 
       - name: dry-run must write nothing
@@ -128,6 +171,34 @@ jobs:
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
           python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
 
+
+      - name: repo-bootstrap dry-run must write nothing
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\repo-dry" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\repo-dry"
+          & "$env:GITHUB_WORKSPACE\init-repo-bootstrap.ps1" -Name ci-demo -Desc "CI" -Profile full -DryRun
+          if (Get-ChildItem -Force) { throw "dry-run created files!" }
+
+      - name: scaffold repo-bootstrap
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-repo-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\tree-repo-ps"
+          & "$env:GITHUB_WORKSPACE\init-repo-bootstrap.ps1" -Name ci-demo -Desc "CI" -Profile full
+
+      - name: repo powershell == bash
+        shell: pwsh
+        run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-repo-bash" "$env:RUNNER_TEMP\tree-repo-ps"
+
+      - name: also-repo powershell == bash
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\also-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\also-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -AlsoRepo -RepoProfile full -NoGitignore
+          python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\also-bash" "$env:RUNNER_TEMP\also-ps"
+
       - name: settings.json is valid JSON even with quotes in the name
         shell: powershell
         run: |
@@ -150,6 +221,16 @@ jobs:
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-repo-bash
+          path: ${{ runner.temp }}/tree-repo-bash
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tree-also-bash
+          path: ${{ runner.temp }}/also-bash
 
       - name: dry-run must write nothing
         shell: pwsh
@@ -176,6 +257,34 @@ jobs:
           Set-Location "$env:RUNNER_TEMP\tree-ps"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI"
           python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\tree-bash" "$env:RUNNER_TEMP\tree-ps"
+
+
+      - name: repo-bootstrap dry-run must write nothing
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\repo-dry" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\repo-dry"
+          & "$env:GITHUB_WORKSPACE\init-repo-bootstrap.ps1" -Name ci-demo -Desc "CI" -Profile full -DryRun
+          if (Get-ChildItem -Force) { throw "dry-run created files!" }
+
+      - name: scaffold repo-bootstrap
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tree-repo-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\tree-repo-ps"
+          & "$env:GITHUB_WORKSPACE\init-repo-bootstrap.ps1" -Name ci-demo -Desc "CI" -Profile full
+
+      - name: repo powershell == bash
+        shell: pwsh
+        run: python tests/compare-trees.py "$env:RUNNER_TEMP\tree-repo-bash" "$env:RUNNER_TEMP\tree-repo-ps"
+
+      - name: also-repo powershell == bash
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\also-ps" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\also-ps"
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name ci-demo -Desc "CI" -AlsoRepo -RepoProfile full -NoGitignore
+          python "$env:GITHUB_WORKSPACE\tests\compare-trees.py" "$env:RUNNER_TEMP\also-bash" "$env:RUNNER_TEMP\also-ps"
 
       - name: settings.json is valid JSON even with quotes in the name
         shell: pwsh

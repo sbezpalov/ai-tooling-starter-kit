@@ -11,6 +11,24 @@ three scripts.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-09-24
+
+### Added
+
+- Companion family `init-repo-bootstrap.{sh,py,ps1}` for inert community/git stubs
+  (LICENSE placeholder, SECURITY, CHANGELOG, CONTRIBUTING) with profiles
+  `core` | `github` | `full`.
+- B+ orchestration: `--also-repo` / `-AlsoRepo` on the AI init scripts invokes the
+  sibling companion (`--repo-profile` / `-RepoProfile`, default `full`).
+- Discoverability tip when AI init runs without `--also-repo`.
+- CI coverage for repo-bootstrap parity and `--also-repo` combined trees.
+
+### Changed
+
+- Product version bumped to **1.2.0** across both script families.
+- `tests/compare-trees.py` normalizes both generator signatures and applies a
+  repo-stub contract when `AGENTS.md` is absent.
+
 ## [1.1.0] — 2026-07-30
 
 ### Added

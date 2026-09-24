@@ -10,6 +10,24 @@ English: [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-09-24
+
+### Добавлено
+
+- Companion-семейство `init-repo-bootstrap.{sh,py,ps1}`: инертные community/git
+  stubs (LICENSE-заглушка, SECURITY, CHANGELOG, CONTRIBUTING) с профилями
+  `core` | `github` | `full`.
+- Оркестрация B+: `--also-repo` / `-AlsoRepo` на AI-init вызывает sibling companion
+  (`--repo-profile` / `-RepoProfile`, по умолчанию `full`).
+- Tip в конце AI-init, если `--also-repo` не передан.
+- CI: паритет repo-bootstrap и комбинированные деревья `--also-repo`.
+
+### Изменено
+
+- Версия продукта **1.2.0** в обоих семействах скриптов.
+- `tests/compare-trees.py` нормализует обе сигнатуры генераторов и проверяет
+  repo-stub контракт, если нет `AGENTS.md`.
+
 ## [1.1.0] — 2026-07-30
 
 ### Добавлено

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-ai-tooling.sh (1.1.0, AGENTS.md model) — deploys an AI tooling scaffold
+# init-ai-tooling.sh (1.2.0, AGENTS.md model) — deploys an AI tooling scaffold
 # (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity) in the current repository.
 #
 # Model: AGENTS.md = single source of truth (read natively by Codex, Cursor,
@@ -9,8 +9,9 @@
 # Idempotent (without --force does not touch existing files). Self-contained (templates inside).
 set -euo pipefail
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; NO_GITIGNORE=0
+ALSO_REPO=0; REPO_PROFILE="full"
 
 usage() {
   cat <<USAGE
@@ -18,6 +19,7 @@ init-ai-tooling.sh (${VERSION}) — AI tooling scaffold (AGENTS.md model).
 
 Usage:
   init-ai-tooling.sh [--name NAME] [--desc "DESC"] [--force] [--dry-run] [--no-gitignore]
+                     [--also-repo] [--repo-profile core|github|full]
 
 Options:
   --name NAME       Project name (defaults to the folder name).
@@ -25,6 +27,8 @@ Options:
   --force           Overwrite existing files.
   --dry-run         Print the plan, write nothing.
   --no-gitignore    Leave .gitignore alone.
+  --also-repo       Also run sibling init-repo-bootstrap.sh (B+).
+  --repo-profile P  Profile for --also-repo (default: full).
   --version         Print version and exit.
   -h, --help        Show this help.
 
@@ -47,6 +51,15 @@ while [ $# -gt 0 ]; do
     --force) FORCE=1; shift ;;
     --dry-run) DRYRUN=1; shift ;;
     --no-gitignore) NO_GITIGNORE=1; shift ;;
+    --also-repo) ALSO_REPO=1; shift ;;
+    --repo-profile)
+      REPO_PROFILE="${2:-}"
+      case "$REPO_PROFILE" in
+        core|github|full) ;;
+        *) echo "Unknown --repo-profile: $REPO_PROFILE (expected core|github|full)" >&2; exit 2 ;;
+      esac
+      shift 2
+      ;;
     --version) printf '%s\n' "init-ai-tooling.sh ${VERSION}"; exit 0 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
@@ -360,5 +373,26 @@ fi
 say ""
 say "Done (${VERSION}): AGENTS.md-model scaffold deployed for \"${NAME}\"."
 say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
-[ "$DRYRUN" = "1" ] && say "(dry-run: nothing was written)"
+
+if [ "$ALSO_REPO" = "1" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  COMPANION="${SCRIPT_DIR}/init-repo-bootstrap.sh"
+  if [ ! -f "$COMPANION" ]; then
+    echo "error: --also-repo requires init-repo-bootstrap.sh next to this script" >&2
+    echo "       expected: ${COMPANION}" >&2
+    exit 1
+  fi
+  say ""
+  say "Also-repo: invoking init-repo-bootstrap.sh --profile ${REPO_PROFILE}"
+  COMPANION_ARGS=(--name "$NAME" --desc "$DESC" --profile "$REPO_PROFILE")
+  [ "$FORCE" = "1" ] && COMPANION_ARGS+=(--force)
+  [ "$DRYRUN" = "1" ] && COMPANION_ARGS+=(--dry-run)
+  bash "$COMPANION" "${COMPANION_ARGS[@]}"
+else
+  say "Tip: run init-repo-bootstrap.sh (or re-run with --also-repo) for LICENSE/SECURITY/CHANGELOG stubs."
+fi
+
+if [ "$DRYRUN" = "1" ] && [ "$ALSO_REPO" != "1" ]; then
+  say "(dry-run: nothing was written)"
+fi
 exit 0

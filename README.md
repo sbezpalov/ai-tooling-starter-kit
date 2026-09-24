@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
@@ -10,7 +10,7 @@ One command that scaffolds a consistent config layout for the AI tools you actua
 **Claude, Codex, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **1.1.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **1.2.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
@@ -66,6 +66,38 @@ mkdir -p /tmp/a /tmp/b
 python3 tests/compare-trees.py /tmp/a /tmp/b
 ```
 
+
+## Repo bootstrap companion (B+)
+
+AI scaffolding stays focused. Community/git stubs live in a **separate companion**
+family with the same triple parity:
+
+| Script | Environment |
+|--------|-------------|
+| `init-repo-bootstrap.sh` | Bash (macOS/Linux) |
+| `init_repo_bootstrap.py` | Python 3.6+, pure stdlib |
+| `init-repo-bootstrap.ps1` | Windows PowerShell 5.1 / PowerShell 7+ |
+
+Profiles:
+
+| Profile | Writes |
+|---------|--------|
+| `core` (default for companion) | `LICENSE` stub (not a real license), `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md` |
+| `github` | core + `.github/CODEOWNERS`, issue/PR templates |
+| `full` | github + `.github/dependabot.yml` stub |
+
+One-shot orchestration from the AI init (default profile for this path: `full`):
+
+```bash
+init-ai-tooling.sh --name my-project --desc "..." --also-repo
+# or
+python3 init_ai_tooling.py --name my-project --desc "..." --also-repo --repo-profile core
+```
+
+PowerShell: `-AlsoRepo` and `-RepoProfile`. Without the flag, the AI script prints a tip
+pointing at the companion. The LICENSE file is an **inert stub** — you must choose and
+paste a real license yourself.
+
 ## Usage
 
 ```bash
@@ -88,6 +120,8 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "What this project 
 | `--force` | `-Force` | Overwrite existing files |
 | `--dry-run` | `-DryRun` | Print the plan, write nothing |
 | `--no-gitignore` | `-NoGitignore` | Leave `.gitignore` alone |
+| `--also-repo` | `-AlsoRepo` | Also run sibling repo-bootstrap companion |
+| `--repo-profile P` | `-RepoProfile P` | Profile for `--also-repo` (`core`/`github`/`full`, default `full`) |
 | `--version` | `-Version` | Print script version and exit |
 | `-h`, `--help` | `-?`, `Get-Help` | Help |
 
@@ -142,5 +176,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 1.1.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 1.2.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*
