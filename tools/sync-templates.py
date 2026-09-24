@@ -26,6 +26,12 @@ MANIFEST_PATH = ".ai/manifest.json"
 # layout.json values are pasted into bash words, Python and PowerShell double-quoted
 # strings unescaped; this charset is inert in all three.
 SAFE_LAYOUT_VALUE = re.compile(r"[A-Za-z0-9._/*!-]+")
+# Plain string lists in layout.json and their names in each language.
+LIST_KEYS = ("gitkeep_dirs", "gitignore", "legacy_files", "legacy_artifact_dirs")
+VAR_NAMES = {"gitkeep_dirs": "GITKEEP_DIRS", "gitignore": "GITIGNORE_LINES",
+            "legacy_files": "LEGACY_FILES", "legacy_artifact_dirs": "LEGACY_ARTIFACT_DIRS"}
+PS_NAMES = {"gitkeep_dirs": "$GitkeepDirs", "gitignore": "$GitignoreLines",
+            "legacy_files": "$LegacyFiles", "legacy_artifact_dirs": "$LegacyArtifactDirs"}
 
 SCRIPTS = {
     "ai": ("init-ai-tooling.sh", "init_ai_tooling.py", "init-ai-tooling.ps1"),
@@ -76,7 +82,7 @@ def manifest_template(layout):
 
 
 def validate_layout(family, layout):
-    values = list(layout.get("gitkeep_dirs", [])) + list(layout.get("gitignore", []))
+    values = [v for key in LIST_KEYS for v in layout.get(key, [])]
     for item in layout["files"]:
         values += [item] if isinstance(item, str) else [item["path"], item["profile"]]
     for value in values:
@@ -111,14 +117,11 @@ def py_literal(content):
 def render_python(family, layout, entries):
     out = []
     if family == "ai":
-        out.append("GITKEEP_DIRS = [")
-        out += ['    "%s",' % d for d in layout["gitkeep_dirs"]]
-        out.append("]")
-        out.append("")
-        out.append("GITIGNORE_LINES = [")
-        out += ['    "%s",' % line for line in layout["gitignore"]]
-        out.append("]")
-        out.append("")
+        for key in LIST_KEYS:
+            out.append("%s = [" % VAR_NAMES[key])
+            out += ['    "%s",' % value for value in layout[key]]
+            out.append("]")
+            out.append("")
         out.append("# (path, template) in write order.")
         out.append("FILES = [")
         for _, path, content in entries:
@@ -139,8 +142,8 @@ def bash_word(value):
 def render_bash(family, layout, entries):
     out = []
     if family == "ai":
-        out.append("GITKEEP_DIRS=(%s)" % " ".join(bash_word(d) for d in layout["gitkeep_dirs"]))
-        out.append("GITIGNORE_LINES=(%s)" % " ".join(bash_word(g) for g in layout["gitignore"]))
+        for key in LIST_KEYS:
+            out.append("%s=(%s)" % (VAR_NAMES[key], " ".join(bash_word(v) for v in layout[key])))
         out.append("")
     out.append("# Writes every template in order (render | write_file).")
     out.append("emit_templates() {")
@@ -160,12 +163,10 @@ def render_bash(family, layout, entries):
 def render_powershell(family, layout, entries):
     out = []
     if family == "ai":
-        out.append("$GitkeepDirs = @(")
-        out.append(",\n".join('    "%s"' % d for d in layout["gitkeep_dirs"]))
-        out.append(")")
-        out.append("$GitignoreLines = @(")
-        out.append(",\n".join('    "%s"' % g for g in layout["gitignore"]))
-        out.append(")")
+        for key in LIST_KEYS:
+            out.append("%s = @(" % PS_NAMES[key])
+            out.append(",\n".join('    "%s"' % v for v in layout[key]))
+            out.append(")")
         out.append("")
     out.append("# Templates in write order. Here-strings drop the final newline;")
     out.append("# Write-Utf8LfFile adds it back.")

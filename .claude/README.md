@@ -2,7 +2,7 @@
 
 Source of truth — [`../AGENTS.md`](../AGENTS.md).
 
-- `commands/` — slash commands; `agents/` — subagents; `artifacts/` — Claude artifacts.
+- `commands/` — slash commands; `agents/` — subagents. Artifacts go in `../.ai/artifacts/`.
 - `settings.json` — team settings; `settings.local.json` — personal (do not commit).
 
 ## What `settings.json` does NOT protect

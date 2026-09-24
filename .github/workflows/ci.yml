@@ -24,7 +24,7 @@ jobs:
           shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
 
       - name: python syntax
-        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py tools/sync-templates.py
+        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py tests/legacy-fixture.py tools/sync-templates.py
 
       # templates/ + VERSION are the source of truth; the scripts embed generated copies.
       - name: generated template blocks are in sync
@@ -78,6 +78,21 @@ jobs:
           mkdir -p "$RUNNER_TEMP/json" && cd "$RUNNER_TEMP/json"
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name 'my "cool" a\b proj' >/dev/null
           python3 -c "import json;json.load(open('.claude/settings.json'))"
+
+      - name: prune-legacy reports leftovers and deletes nothing
+        run: |
+          for impl in bash python; do
+            d="$RUNNER_TEMP/legacy-$impl"; e="$RUNNER_TEMP/legacy-empty-$impl"
+            mkdir -p "$d" "$e"
+            python3 tests/legacy-fixture.py create "$d"
+            if [ "$impl" = bash ]; then run=(bash "$GITHUB_WORKSPACE/init-ai-tooling.sh")
+            else run=(python3 "$GITHUB_WORKSPACE/init_ai_tooling.py"); fi
+            (cd "$d" && "${run[@]}" --prune-legacy) > "$d.out"
+            (cd "$e" && "${run[@]}" --prune-legacy) > "$e.out"
+            python3 tests/legacy-fixture.py verify "$d" "$d.out"
+            python3 tests/legacy-fixture.py verify-empty "$e.out"
+            test -z "$(ls -A "$e")" || { echo "prune-legacy wrote files"; exit 1; }
+          done
 
       - uses: actions/upload-artifact@v5
         with:
@@ -211,6 +226,23 @@ jobs:
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name 'my "cool" a\b proj' | Out-Null
           python -c "import json;json.load(open('.claude/settings.json'))"
 
+      - name: prune-legacy reports leftovers and deletes nothing
+        shell: powershell
+        run: |
+          $d = "$env:RUNNER_TEMP\legacy"; $e = "$env:RUNNER_TEMP\legacy-empty"
+          New-Item -ItemType Directory -Force -Path $d, $e | Out-Null
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" create $d
+          if ($LASTEXITCODE) { throw "fixture failed" }
+          Set-Location $d
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -PruneLegacy *> "$d.out"
+          Set-Location $e
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -PruneLegacy *> "$e.out"
+          if (Get-ChildItem -Force $e) { throw "prune-legacy wrote files" }
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" verify $d "$d.out"
+          if ($LASTEXITCODE) { throw "prune-legacy report mismatch" }
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" verify-empty "$e.out"
+          if ($LASTEXITCODE) { throw "prune-legacy empty report mismatch" }
+
   windows-pwsh:
     name: powershell 7+ (windows)
     runs-on: windows-latest
@@ -297,3 +329,20 @@ jobs:
           Set-Location "$env:RUNNER_TEMP\json"
           & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -Name 'my "cool" a\b proj' | Out-Null
           python -c "import json;json.load(open('.claude/settings.json'))"
+
+      - name: prune-legacy reports leftovers and deletes nothing
+        shell: pwsh
+        run: |
+          $d = "$env:RUNNER_TEMP\legacy"; $e = "$env:RUNNER_TEMP\legacy-empty"
+          New-Item -ItemType Directory -Force -Path $d, $e | Out-Null
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" create $d
+          if ($LASTEXITCODE) { throw "fixture failed" }
+          Set-Location $d
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -PruneLegacy *> "$d.out"
+          Set-Location $e
+          & "$env:GITHUB_WORKSPACE\init-ai-tooling.ps1" -PruneLegacy *> "$e.out"
+          if (Get-ChildItem -Force $e) { throw "prune-legacy wrote files" }
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" verify $d "$d.out"
+          if ($LASTEXITCODE) { throw "prune-legacy report mismatch" }
+          python "$env:GITHUB_WORKSPACE\tests\legacy-fixture.py" verify-empty "$e.out"
+          if ($LASTEXITCODE) { throw "prune-legacy empty report mismatch" }

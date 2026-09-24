@@ -36,6 +36,19 @@ CODEX_CONTRACT = {
 
 MANIFEST_PATH = ".ai/manifest.json"
 
+# Dropped in 2.0.0: AGENTS.md is read natively, so redirects and per-tool artifact
+# folders are gone. A fresh scaffold must never write them again.
+LEGACY_FORBIDDEN_PATHS = {
+    ".cursorrules",
+    "PERPLEXITY.md",
+    ".perplexity/README.md",
+    ".perplexity/artifacts/.gitkeep",
+    ".antigravity/README.md",
+    ".antigravity/artifacts/.gitkeep",
+    ".claude/artifacts/.gitkeep",
+    ".cursor/artifacts/.gitkeep",
+}
+
 # Claude Code loads AGENTS.md only via an explicit import line; a prose redirect
 # depends on the model choosing to open the file.
 CLAUDE_IMPORT_LINE = b"\n@AGENTS.md\n"
@@ -96,6 +109,8 @@ def validate_codex_contract(files, root):
                 )
     for rel in sorted(CODEX_FORBIDDEN_PATHS & set(files)):
         problems.append("Codex contract forbids generated path in %s: %s" % (root, rel))
+    for rel in sorted(LEGACY_FORBIDDEN_PATHS & set(files)):
+        problems.append("legacy path generated in %s: %s" % (root, rel))
     return problems
 
 

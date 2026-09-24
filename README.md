@@ -1,16 +1,16 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
 
 One command that scaffolds a consistent config layout for the AI tools you actually use —
-**Claude, Codex, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
+**Claude, Codex, Cursor, Gemini/Antigravity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **1.3.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **2.0.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
@@ -18,21 +18,20 @@ output are **English** by default; Russian docs live in `*.ru.md`.
 
 **`AGENTS.md` is the single source of truth.** Codex, Cursor, Google Antigravity/Gemini and other
 AGENTS-aware tools read it natively, so context needs no duplication and there is no
-"pointer file nobody opens". Everything else is a thin redirect or tool-specific detail.
+"pointer file nobody opens". Claude Code and Gemini CLI get it through an `@AGENTS.md`
+import; everything else is tool-specific detail.
 
 | File | Tool | Role |
 |------|------|------|
 | `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, commands, conventions, "never" list |
-| `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | redirect + rules (`000-project`, `010-safety`) |
+| `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | rules (`000-project`, `010-safety`); Cursor reads `AGENTS.md` natively |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | `@AGENTS.md` import + `commands/`, `agents/`, `settings.json` |
-| `GEMINI.md` | Antigravity / Gemini | agent specifics (wins on conflict) |
-| `PERPLEXITY.md` | Perplexity | paste-in brief (role / boundaries / output format) |
-| `.ai/README.md` + `.ai/artifacts/` | — | layout map + cross-tool artifacts |
+| `GEMINI.md` | Gemini CLI / Antigravity | `@./AGENTS.md` import + Gemini specifics; Antigravity reads `AGENTS.md` natively |
+| `.ai/README.md` + `.ai/artifacts/` | — | layout map + artifacts from every tool |
 | `.ai/manifest.json` | — | kit version + list of kit-owned files (for future upgrades) |
 
-Tool-specific artifacts live in `.claude/artifacts/`, `.cursor/artifacts/`,
-`.antigravity/artifacts/`, and `.perplexity/artifacts/`; shared and Codex artifacts live
-in `.ai/artifacts/`.
+Plans, research, and other durable session results from every tool go in one place:
+`.ai/artifacts/`.
 
 Codex needs no redirect file: it discovers `AGENTS.md` natively. The kit deliberately leaves
 `.codex/config.toml` optional because model, permission, and integration settings should be
@@ -127,6 +126,7 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "What this project 
 | `--no-gitignore` | `-NoGitignore` | Leave `.gitignore` alone |
 | `--also-repo` | `-AlsoRepo` | Also run sibling repo-bootstrap companion |
 | `--repo-profile P` | `-RepoProfile P` | Profile for `--also-repo` (`core`/`github`/`full`, default `full`) |
+| `--prune-legacy` | `-PruneLegacy` | List leftovers from older kit versions and exit (deletes nothing) |
 | `--version` | `-Version` | Print script version and exit |
 | `-h`, `--help` | `-?`, `Get-Help` | Help |
 
@@ -146,7 +146,7 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
    tool reads its context from there. The quickest route is to let your agent do it:
    *"Read this codebase and fill in the TODOs in AGENTS.md. Keep it short — only what you
    could not infer from the code."* Review the result before committing.
-2. Optionally add domain rules in `.cursor/rules/*.mdc` and a role in `PERPLEXITY.md`.
+2. Optionally add domain rules in `.cursor/rules/*.mdc` and Gemini specifics in `GEMINI.md`.
 3. Commit: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
 ## What `.claude/settings.json` does and does not protect
@@ -171,18 +171,24 @@ create partial duplication — e.g. your `00-project.mdc` sitting next to a gene
 `000-project.mdc`. Merge those by hand: make your content the basis of `AGENTS.md` and drop
 the duplicates.
 
-## Migrating v1 → v2
+## Upgrading from an earlier version
 
-If a project was scaffolded with v1 (`.ai/shared-context.md` as the hub), remove the v1
-leftovers and re-apply v2 with `--force`:
+2.0 no longer generates `.cursorrules`, `PERPLEXITY.md`, `.perplexity/`, `.antigravity/`,
+or the per-tool `artifacts/` folders (`.claude/`, `.cursor/`); every tool now shares
+`.ai/artifacts/`. To clean up a project scaffolded by 1.x (or by the v1 model):
 
-```bash
-rm -f .ai/shared-context.md .cursor/README.md .perplexity/context.md \
-      .perplexity/spaces/README.md .antigravity/rules/000-workspace.md \
-      .antigravity/rules/.gitkeep .cursor/rules/.gitkeep
-rmdir .antigravity/rules 2>/dev/null || true
-init-ai-tooling.sh --name PROJECT --desc "..." --force
-```
+1. List the leftovers — the script only reports, it never deletes:
+
+   ```bash
+   init-ai-tooling.sh --prune-legacy        # PowerShell: -PruneLegacy
+   ```
+
+2. Move anything the report marks as *saved item(s)* into `.ai/artifacts/`, then remove the
+   listed paths, e.g. `git rm -r .cursorrules PERPLEXITY.md .perplexity .antigravity`.
+3. Re-run the script **without** `--force` to add new files such as `.ai/manifest.json`.
+   Existing files are kept. To adopt the new `CLAUDE.md` / `GEMINI.md` (`@AGENTS.md`
+   imports) without touching a filled-in `AGENTS.md`, scaffold into an empty directory and
+   copy those two files over.
 
 ## Contributing
 
@@ -197,5 +203,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 1.3.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 2.0.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*

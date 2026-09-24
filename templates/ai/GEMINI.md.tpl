@@ -1,11 +1,9 @@
-# GEMINI.md — Google Antigravity / Gemini
+# GEMINI.md — __NAME__
 
-> Antigravity reads both `AGENTS.md` and `GEMINI.md`; on conflict, `GEMINI.md` wins.
-> **Project source of truth — `AGENTS.md`; read it first.** Here — Antigravity/Gemini specifics.
+Project rules live in `AGENTS.md`; the import below loads it into Gemini CLI.
+Google Antigravity reads `AGENTS.md` natively.
 
-## Agent mode
-- Work from a plan (task/plan): break the task down and show steps before executing.
-- Human-in-the-loop: for production-data/core edits — stop and ask for confirmation.
-- Produce artifacts (diff, file list, rollback plan) before applying; save them in `.antigravity/artifacts/`.
-- Do not run shell commands against a production server/DB.
-- Keep changes atomic, with an explanation of WHAT and WHY.
+@./AGENTS.md
+
+## Gemini-specific
+<!-- TODO: only what differs for Gemini CLI / Antigravity; leave empty if nothing does. -->

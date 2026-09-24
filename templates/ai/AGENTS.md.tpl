@@ -24,7 +24,7 @@ __DESC__
 Tests and lint pass for the change. <!-- TODO: add project-specific checks. -->
 
 ## Artifacts
-Plans, research, and other durable session results go in `.ai/artifacts/`; tool-specific
-folders are listed in `.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
+Plans, research, and other durable session results from every tool go in `.ai/artifacts/`.
+Codex reads this file natively and uses the shared artifacts directory.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->

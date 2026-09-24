@@ -6,10 +6,39 @@ Versions follow [Semantic Versioning](https://semver.org/).
 Russian translation: [CHANGELOG.ru.md](CHANGELOG.ru.md).
 
 “Model v2” / AGENTS.md model names the architectural generation of the scaffold, not the
-release number. Product semver lives in the `VERSION` / `$ToolVersion` constant of the
-three scripts.
+release number. Product semver lives in the root `VERSION` file; `tools/sync-templates.py`
+copies it into the scripts.
 
 ## [Unreleased]
+
+## [2.0.0] — 2026-09-24
+
+Breaking: the generated layout shrinks. Codex, Cursor, and Antigravity read `AGENTS.md`
+natively and Claude Code / Gemini CLI import it, so redirect files and per-tool artifact
+folders no longer earn their keep. See README → "Upgrading from an earlier version".
+
+### Added
+
+- `--prune-legacy` / `-PruneLegacy`: lists leftovers from 1.x and the v1 model (redirect
+  files, per-tool `artifacts/` folders, v1 hub files) and exits. It never deletes; legacy
+  artifact folders that hold user files are flagged "move them to .ai/artifacts/ first".
+- `tests/legacy-fixture.py` and CI steps (bash, Python, PowerShell 5.1 and 7) proving the
+  report is identical across implementations and deletes nothing.
+
+### Changed
+
+- `GEMINI.md` is now an `@./AGENTS.md` import for Gemini CLI plus an optional Gemini section;
+  the generic process rules are gone.
+- All tools share `.ai/artifacts/`; `.ai/README.md`, `CLAUDE.md`, and `.claude/README.md`
+  say so.
+- Legacy paths live in `templates/ai/layout.json` (`legacy_files`, `legacy_artifact_dirs`).
+
+### Removed
+
+- Generated files: `.cursorrules`, `PERPLEXITY.md`, `.perplexity/README.md`,
+  `.antigravity/README.md`, and the `.claude/`, `.cursor/`, `.antigravity/`, `.perplexity/`
+  `artifacts/` folders. `tests/compare-trees.py` fails if a scaffold writes them again.
+- README's manual v1 → v2 `rm` recipe, replaced by `--prune-legacy`.
 
 ## [1.3.0] — 2026-09-24
 
