@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Team Claude Code settings for ai-tooling-starter-kit. Personal overrides — settings.local.json (do not commit).",
+  "//": "Team Claude Code settings for ai-tooling-starter-kit. Personal overrides — settings.local.json (do not commit). Deny rules are guardrails, not a sandbox: see .claude/README.md.",
   "permissions": {
     "allow": ["Read", "Edit"],
     "deny": [
@@ -12,7 +12,9 @@
       "Read(**/.aws/**)",
       "Read(**/.kube/**)",
       "Bash(rm -rf:*)",
-      "Bash(git push --force:*)"
+      "Bash(rm -fr:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
     ]
   }
 }

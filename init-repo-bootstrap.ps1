@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    init-repo-bootstrap.ps1 (1.2.0) — PowerShell community/git repository bootstrap.
+    init-repo-bootstrap.ps1 (1.2.1) — PowerShell community/git repository bootstrap.
 
 .DESCRIPTION
     Scaffolds inert governance stubs and optional GitHub community files.
@@ -39,7 +39,7 @@ param (
     [switch]$Version
 )
 
-$ToolVersion = "1.2.0"
+$ToolVersion = "1.2.1"
 
 $ErrorActionPreference = "Stop"
 

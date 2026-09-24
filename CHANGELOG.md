@@ -11,6 +11,30 @@ three scripts.
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-09-24
+
+### Changed
+
+- Generated `CLAUDE.md` now imports `AGENTS.md` with an `@AGENTS.md` line, so Claude Code
+  loads the rules deterministically instead of relying on a prose redirect.
+- `.claude/settings.json` also denies `rm -fr` and `git push -f`, and its comment states
+  that deny rules are guardrails, not a sandbox.
+- Generated `.claude/README.md` and the README document what the deny list does not cover
+  (other flag orders, `find -delete`, `cat .env` through Bash without the sandbox).
+
+### Fixed
+
+- CI: the BOM check could not run under PowerShell (`$script:` parsed as a scope
+  modifier), which masked that `init-ai-tooling.ps1` had lost its UTF-8 BOM.
+  The BOM is restored; Windows PowerShell 5.1 reads the script correctly again.
+- CI: GitHub Actions bumped to v5 (Node 20 deprecation).
+- Removed committed `__pycache__/*.pyc` files and ignored them.
+
+### Tests
+
+- `tests/compare-trees.py` enforces the Claude contract: `CLAUDE.md` must contain an
+  `@AGENTS.md` import line.
+
 ## [1.2.0] — 2026-09-24
 
 ### Added

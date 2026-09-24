@@ -27,7 +27,7 @@ Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / P
 
 ## 4. Status / current priority
 <!-- TODO: where the project is now and what to focus on. -->
-Release **1.2.0**. English is the default language for scaffolds and primary docs.
+Release **1.2.1**. English is the default language for scaffolds and primary docs.
 
 ## 5. How to change things (agent)
 - Work from a plan: break the task down and show steps BEFORE executing.
