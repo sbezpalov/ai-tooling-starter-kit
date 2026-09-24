@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
@@ -10,7 +10,7 @@
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **1.2.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **1.2.1** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
@@ -25,7 +25,7 @@ Antigravity/Gemini и другие AGENTS-совместимые инструм�
 |------|-----------|------|
 | `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, стек, правила, DoD, безопасность |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | редирект + правила (`000-project`, `010-safety`) |
-| `CLAUDE.md` + `.claude/` | Claude Code / Cowork | редирект + `commands/`, `agents/`, `settings.json` |
+| `CLAUDE.md` + `.claude/` | Claude Code / Cowork | импорт `@AGENTS.md` + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | агент-специфика (приоритет при конфликте) |
 | `PERPLEXITY.md` | Perplexity | вставляемый бриф (роль/границы/формат) |
 | `.ai/README.md` + `.ai/artifacts/` | — | карта раскладки + кросс-инструментальные артефакты |
@@ -125,6 +125,21 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 2. При необходимости — доменные правила в `.cursor/rules/*.mdc` и роль в `PERPLEXITY.md`.
 3. Коммит: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
+## Что `.claude/settings.json` защищает, а что нет
+
+Сгенерированный список `deny` закрывает очевидные ошибки (чтение `.env` и ключей
+файловыми инструментами Claude, `rm -rf`, `git push --force`). Это **страховка, а не
+граница безопасности**:
+
+- правила `Bash(...)` сравнивают префикс команды — `rm -r -f`, `find . -delete` или скрипт,
+  который удаляет файлы, пройдут;
+- без песочницы Claude Code правила `Read(...)` действуют на файловые инструменты Claude,
+  но не на `cat .env`, запущенный через Bash.
+
+Для настоящей изоляции включите песочницу Claude Code, запускайте агента в контейнере
+или devcontainer, либо добавьте хук `PreToolUse`. Те же ограничения описаны в
+сгенерированном `.claude/README.md`.
+
 ## Проекты с уже готовой конвенцией
 
 Скрипт идемпотентен и **не перезаписывает** чужие файлы, но на проекте с собственной
@@ -159,5 +174,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 1.2.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 1.2.1 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*

@@ -33,6 +33,10 @@ CODEX_CONTRACT = {
     ),
 }
 
+# Claude Code loads AGENTS.md only via an explicit import line; a prose redirect
+# depends on the model choosing to open the file.
+CLAUDE_IMPORT_LINE = b"\n@AGENTS.md\n"
+
 CODEX_FORBIDDEN_PATHS = {
     "CODEX.md",
     ".codex/config.toml",
@@ -92,6 +96,16 @@ def validate_codex_contract(files, root):
     return problems
 
 
+def validate_claude_contract(files, root):
+    """Verify CLAUDE.md imports AGENTS.md instead of merely pointing at it."""
+    content = files.get("CLAUDE.md")
+    if content is None:
+        return ["Claude contract missing in %s: CLAUDE.md" % root]
+    if CLAUDE_IMPORT_LINE not in content:
+        return ["Claude contract in %s: CLAUDE.md lacks an '@AGENTS.md' import line" % root]
+    return []
+
+
 def validate_repo_contract(files, root):
     """Verify inert governance stubs (no silent real license)."""
     problems = []
@@ -133,6 +147,7 @@ def main(argv):
 
     if "AGENTS.md" in a:
         problems.extend(validate_codex_contract(a, a_root))
+        problems.extend(validate_claude_contract(a, a_root))
     # Independent of Codex: also-repo trees carry both families.
     if "LICENSE" in a:
         problems.extend(validate_repo_contract(a, a_root))

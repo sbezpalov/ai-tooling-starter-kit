@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-repo-bootstrap.sh (1.2.0) — community/git repository bootstrap companion.
+# init-repo-bootstrap.sh (1.2.1) — community/git repository bootstrap companion.
 #
 # Scaffolds inert governance stubs and optional GitHub community files.
 # Does NOT choose a real license. Complements init-ai-tooling.sh.
@@ -7,7 +7,7 @@
 # Idempotent (without --force does not touch existing files). Self-contained.
 set -euo pipefail
 
-VERSION="1.2.0"
+VERSION="1.2.1"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; PROFILE="core"
 
 usage() {

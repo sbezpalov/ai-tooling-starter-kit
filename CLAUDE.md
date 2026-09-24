@@ -1,7 +1,10 @@
 # CLAUDE.md — ai-tooling-starter-kit
 
-**Source of truth — [`AGENTS.md`](AGENTS.md). Read it first.** Below — Claude-specific only.
+Project rules live in `AGENTS.md`; the import below loads it into every Claude Code session.
 
-## Claude directories
+@AGENTS.md
+
+## Claude-specific
 - `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
 - Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).
+- `settings.json` deny rules are guardrails, not a sandbox — see `.claude/README.md`.

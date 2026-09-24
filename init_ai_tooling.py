@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_ai_tooling.py (1.2.0, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
+"""init_ai_tooling.py (1.2.1, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
 
 Scaffolds an AI tooling layout (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
 in the current repository. Model: AGENTS.md = single source of truth; thin
@@ -22,7 +22,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 # ---------------------------------------------------------------------------
 # Artifact directories (each gets a .gitkeep)
@@ -155,11 +155,14 @@ __pycache__/
 _add("CLAUDE.md", """\
 # CLAUDE.md — __NAME__
 
-**Source of truth — [`AGENTS.md`](AGENTS.md). Read it first.** Below — Claude-specific only.
+Project rules live in `AGENTS.md`; the import below loads it into every Claude Code session.
 
-## Claude directories
+@AGENTS.md
+
+## Claude-specific
 - `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
 - Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).
+- `settings.json` deny rules are guardrails, not a sandbox — see `.claude/README.md`.
 """)
 
 _add(".claude/README.md", """\
@@ -169,12 +172,20 @@ Source of truth — [`../AGENTS.md`](../AGENTS.md).
 
 - `commands/` — slash commands; `agents/` — subagents; `artifacts/` — Claude artifacts.
 - `settings.json` — team settings; `settings.local.json` — personal (do not commit).
+
+## What `settings.json` does NOT protect
+The `deny` list is a best-effort guardrail, not a security boundary:
+- `Bash(...)` rules match command prefixes: `rm -r -f`, `find . -delete`, or a script
+  that deletes files are not caught.
+- Without the sandbox, `Read(...)` rules cover Claude's file tools, not `cat .env` run through Bash.
+
+For real isolation use Claude Code's sandbox, a container/devcontainer, or a `PreToolUse` hook.
 """)
 
 _add(".claude/settings.json", """\
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "//": "Team Claude Code settings for __NAME_JSON__. Personal overrides — settings.local.json (do not commit).",
+  "//": "Team Claude Code settings for __NAME_JSON__. Personal overrides — settings.local.json (do not commit). Deny rules are guardrails, not a sandbox: see .claude/README.md.",
   "permissions": {
     "allow": ["Read", "Edit"],
     "deny": [
@@ -186,7 +197,9 @@ _add(".claude/settings.json", """\
       "Read(**/.aws/**)",
       "Read(**/.kube/**)",
       "Bash(rm -rf:*)",
-      "Bash(git push --force:*)"
+      "Bash(rm -fr:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
     ]
   }
 }

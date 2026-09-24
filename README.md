@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
@@ -10,7 +10,7 @@ One command that scaffolds a consistent config layout for the AI tools you actua
 **Claude, Codex, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **1.2.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **1.2.1** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
@@ -24,7 +24,7 @@ AGENTS-aware tools read it natively, so context needs no duplication and there i
 |------|------|------|
 | `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, stack, rules, DoD, security |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | redirect + rules (`000-project`, `010-safety`) |
-| `CLAUDE.md` + `.claude/` | Claude Code / Cowork | redirect + `commands/`, `agents/`, `settings.json` |
+| `CLAUDE.md` + `.claude/` | Claude Code / Cowork | `@AGENTS.md` import + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | agent specifics (wins on conflict) |
 | `PERPLEXITY.md` | Perplexity | paste-in brief (role / boundaries / output format) |
 | `.ai/README.md` + `.ai/artifacts/` | — | layout map + cross-tool artifacts |
@@ -142,6 +142,20 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 2. Optionally add domain rules in `.cursor/rules/*.mdc` and a role in `PERPLEXITY.md`.
 3. Commit: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
+## What `.claude/settings.json` does and does not protect
+
+The generated `deny` list blocks the obvious mistakes (reading `.env`/keys with Claude's
+file tools, `rm -rf`, `git push --force`). It is a **guardrail, not a security boundary**:
+
+- `Bash(...)` rules match command prefixes — `rm -r -f`, `find . -delete`, or a script that
+  deletes files slip through.
+- Without Claude Code's sandbox, `Read(...)` rules cover Claude's file tools, not
+  `cat .env` run through Bash.
+
+For real isolation, enable Claude Code's sandbox, run the agent in a container or
+devcontainer, or add a `PreToolUse` hook. The same limits are spelled out in the generated
+`.claude/README.md`.
+
 ## Projects that already have a convention
 
 The script is idempotent and **never overwrites** files you already have, but on a project
@@ -176,5 +190,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 1.2.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 1.2.1 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*

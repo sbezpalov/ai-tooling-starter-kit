@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_repo_bootstrap.py (1.2.0) — community/git repository bootstrap companion.
+"""init_repo_bootstrap.py (1.2.1) — community/git repository bootstrap companion.
 
 Scaffolds inert governance stubs (LICENSE placeholder, SECURITY, CHANGELOG,
 CONTRIBUTING) and optional GitHub community files. Does NOT choose a real
@@ -20,7 +20,7 @@ import os
 from pathlib import Path
 import sys
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 PROFILES = ("core", "github", "full")
 
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ jobs:
     name: bash + python (ubuntu)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: shellcheck
         run: |
@@ -75,19 +75,19 @@ jobs:
           bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name 'my "cool" a\b proj' >/dev/null
           python3 -c "import json;json.load(open('.claude/settings.json'))"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
           include-hidden-files: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/repo-bash
           include-hidden-files: true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
@@ -105,19 +105,19 @@ jobs:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/tree-repo-bash
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
@@ -131,7 +131,7 @@ jobs:
             Write-Host "=== $script ==="
             $all | Format-Table -AutoSize | Out-String | Write-Host
             $errors = @($all | Where-Object Severity -eq 'Error')
-            if ($errors.Count) { throw "PSScriptAnalyzer ($script): $($errors.Count) error(s)" }
+            if ($errors.Count) { throw "PSScriptAnalyzer (${script}): $($errors.Count) error(s)" }
           }
 
       - name: .ps1 must be UTF-8 with BOM
@@ -140,7 +140,7 @@ jobs:
           foreach ($script in @('./init-ai-tooling.ps1', './init-repo-bootstrap.ps1')) {
             $b = [System.IO.File]::ReadAllBytes($script)
             if ($b[0] -ne 0xEF -or $b[1] -ne 0xBB -or $b[2] -ne 0xBF) {
-              throw "Missing BOM in $script: Windows PowerShell 5.1 would read the file as ANSI."
+              throw "Missing BOM in ${script}: Windows PowerShell 5.1 would read the file as ANSI."
             }
           }
 
@@ -215,19 +215,19 @@ jobs:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/tree-repo-bash
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
