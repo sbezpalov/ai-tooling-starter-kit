@@ -1,57 +1,44 @@
 # AGENTS.md — ai-tooling-starter-kit
 
-> **Single source of truth for all AI tools and humans in this repository.**
-> Codex, Cursor, Google Antigravity/Gemini, and other AGENTS-compatible tools read this file
-> natively. Thin redirects (`.cursorrules`, `CLAUDE.md`, `GEMINI.md`, `PERPLEXITY.md`)
-> add detail but do not override these rules. **Read this file fully before working.**
+> Shared instructions for AI coding agents and humans. Codex, Cursor, Google Antigravity/Gemini,
+> and other AGENTS-compatible tools read this file natively; Claude Code imports it from `CLAUDE.md`.
+> Keep it short: write down only what an agent cannot infer from the code.
 
-## 1. Project
+## Project
 Starter kit that scaffolds a consistent AI-tooling layout (Claude, Codex, Cursor,
-Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / PowerShell).
+Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / PowerShell),
+plus a repo-bootstrap companion family. Release **1.3.0**; English is the default language
+for scaffolds and primary docs (`*.ru.md` are translations).
 
-<!-- TODO: 2–4 sentences — purpose, users, value. -->
+## Commands
+```bash
+python3 tools/sync-templates.py            # after editing templates/ or VERSION
+python3 tools/sync-templates.py --check    # CI gate: generated blocks are current
+shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
+python3 tests/compare-trees.py DIR_A DIR_B # byte-for-byte parity of two scaffolded trees
+```
+The full parity matrix (dry-run, AI / repo / `--also-repo` trees, idempotency, hostile
+names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
 
-## 2. Stack
-<!-- TODO: languages, frameworks, DB, infrastructure. -->
-- Bash, Python 3.6+ (stdlib), PowerShell 5.1 / 7+
-- GitHub Actions CI
+## Conventions
+- `templates/<family>/*.tpl` + `layout.json` + `VERSION` are the source of truth for
+  generated text. Never hand-edit the `BEGIN GENERATED … END GENERATED` block in a script.
+- Logic changes land in **all three** scripts of the affected family at once
+  (`init-ai-tooling.{sh,ps1}` + `init_ai_tooling.py`, `init-repo-bootstrap.{sh,ps1}` +
+  `init_repo_bootstrap.py`).
+- Output is LF on every OS; `.ps1` files are UTF-8 **with BOM** and CRLF on disk.
+- PowerShell templates are literal here-strings (`@'…'@`); substitution uses `.Replace()`.
+- Pitfalls already hit are listed in `CONTRIBUTING.md` — read it before touching `.ps1`.
 
-## 3. Structure
-<!-- TODO: table of "directory → purpose". -->
-| Path | Purpose |
-|------|---------|
-| `init-ai-tooling.sh` / `init_ai_tooling.py` / `init-ai-tooling.ps1` | Equivalent AI scaffolders |
-| `init-repo-bootstrap.sh` / `init_repo_bootstrap.py` / `init-repo-bootstrap.ps1` | Equivalent repo-bootstrap companions (B+) |
-| `tests/compare-trees.py` | Byte-for-byte tree equivalence (AI + repo families) |
-| `README.md` / `README.ru.md` | Docs (EN default, RU alternate) |
+## Never
+- Commit or print secrets (`.env`, keys, tokens); only `*.example` files belong in the repo.
+- Make a script delete or overwrite user files without `--force` / `-Force`.
+- Add runtime dependencies to the scripts (stdlib Python 3.6+, Bash, PowerShell 5.1 only).
 
-## 4. Status / current priority
-<!-- TODO: where the project is now and what to focus on. -->
-Release **1.2.1**. English is the default language for scaffolds and primary docs.
+## Done means
+`tools/sync-templates.py --check`, `shellcheck`, and the three-way parity check pass;
+behaviour changes are reflected in both READMEs and both CHANGELOGs.
 
-## 5. How to change things (agent)
-- Work from a plan: break the task down and show steps BEFORE executing.
-- Human-in-the-loop: for irreversible operations and production-data edits — stop and ask.
-- Produce artifacts (diff, list of changed files, rollback plan) before applying.
-- Keep changes atomic; explain WHAT and WHY.
-- New code ships with tests; the task is not "done" if tests/lint are failing.
-- Behaviour changes must land in **all three** scripts of the affected family at once
-  (AI and/or repo-bootstrap).
-
-## 6. Security (NEVER)
-- Do not edit production directly <!-- TODO: delivery path, e.g. local → staging → prod via git -->.
-- Secrets (passwords, keys, tokens, `.env`, local configs) — never commit or print them;
-  the repo may only contain `*.example` files.
-- Destructive operations on production data/DB — only with explicit confirmation and a dry run on a copy.
-- <!-- TODO: project-specific bans (do not touch core/…). -->
-
-## 7. Definition of Done
-- [ ] Change is local; secrets did not land in code/commit.
-- [ ] Tests/lint are green; verified on staging if needed.
-- [ ] Diff is reviewed; a rollback plan exists.
-
-## Tool layout
-Shared artifacts live in `.ai/artifacts/`; tool-specific artifact folders are listed in
-`.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
-
-<!-- Initialized by init-ai-tooling 1.1.0 (2026-07-30). -->
+## Artifacts
+Plans, research, and other durable session results go in `.ai/artifacts/`; tool-specific
+folders are listed in `.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.

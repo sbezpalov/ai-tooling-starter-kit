@@ -6,8 +6,19 @@ Russian translation: [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md).
 
 ## The one rule
 
-**All three implementations must stay equivalent.** Any behaviour change — new template,
-new flag, edit to generated text — lands in **all three scripts of that family at once**.
+**All three implementations must stay equivalent.**
+
+- **Generated text** (a new template, an edited template, write order, `.gitkeep`
+  directories, `.gitignore` lines, the release number) is edited **once**: in
+  `templates/<family>/*.tpl`, `templates/<family>/layout.json`, or `VERSION`. Then run
+  `python3 tools/sync-templates.py` — it rewrites the generated block in all six scripts.
+  CI runs it with `--check` and fails if a script is stale; never edit a generated block
+  by hand.
+- **Logic** (a new flag, a new write rule) still lands in **all three scripts of that
+  family at once**.
+
+Templates keep a `.tpl` suffix so that agents working on this repository do not mistake
+`templates/ai/AGENTS.md.tpl` for the repository's own instructions.
 
 AI family:
 
@@ -24,9 +35,9 @@ Repo-bootstrap family (same rule):
 CI compares scaffolded trees byte for byte (AI trees, repo trees, and `--also-repo`
 combined trees) and fails if a single character diverges.
 
-When bumping a release, update `VERSION` / `$ToolVersion` in **both** families,
-signatures/help (they read the constant), `CHANGELOG.md` (+ `CHANGELOG.ru.md` if present),
-and the version badge in both READMEs.
+When bumping a release, edit the root `VERSION` file and run
+`python3 tools/sync-templates.py` (it updates the constant and header in all six scripts),
+then update `CHANGELOG.md` + `CHANGELOG.ru.md` and the version badge in both READMEs.
 
 Check locally before pushing:
 
@@ -42,8 +53,8 @@ mkdir -p /tmp/ra /tmp/rb
 python3 tests/compare-trees.py /tmp/ra /tmp/rb
 ```
 
-The PowerShell script cannot be verified locally without Windows — CI covers it
-(`windows-latest`, Windows PowerShell 5.1 and PowerShell 7).
+With PowerShell 7 (`pwsh`) installed, the `.ps1` scripts run on macOS/Linux too; CI
+additionally covers Windows PowerShell 5.1 on `windows-latest`.
 
 ## Pitfalls we have already hit
 
@@ -78,7 +89,8 @@ deliberately does not normalize line endings, so CRLF is a failure.
 
 ## Style
 
-- Scripts are self-contained: templates live inline; no external dependencies.
+- Scripts are self-contained: templates are embedded (generated from `templates/`); no
+  external dependencies, so a single script can be copied anywhere.
 - Idempotent: without `--force` / `-Force`, existing files are left alone.
 - Never delete. The script only creates files and appends lines to `.gitignore`.
 - `bash` passes `shellcheck`; `.ps1` passes `PSScriptAnalyzer` with no Error-level findings.
@@ -87,7 +99,8 @@ deliberately does not normalize line endings, so CRLF is a failure.
 ## Pull request
 
 1. Branch from `main`.
-2. Change all three scripts + local equivalence check.
+2. Edit `templates/` and run `tools/sync-templates.py`, or change logic in all three
+   scripts; then the local equivalence check.
 3. If behaviour changed — update both READMEs (`README.md` and `README.ru.md`).
 4. PR description: what changes and why.
 

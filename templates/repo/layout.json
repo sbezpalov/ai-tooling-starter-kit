@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": "LICENSE",
+      "profile": "core"
+    },
+    {
+      "path": "SECURITY.md",
+      "profile": "core"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "profile": "core"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "profile": "core"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "profile": "github"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "profile": "github"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "profile": "github"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "profile": "github"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "profile": "full"
+    }
+  ]
+}

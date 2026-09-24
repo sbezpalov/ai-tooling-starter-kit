@@ -1,0 +1,34 @@
+{
+  "gitkeep_dirs": [
+    ".ai/artifacts",
+    ".claude/commands",
+    ".claude/agents",
+    ".claude/artifacts",
+    ".cursor/artifacts",
+    ".antigravity/artifacts",
+    ".perplexity/artifacts"
+  ],
+  "files": [
+    "AGENTS.md",
+    ".cursorrules",
+    ".cursor/rules/000-project.mdc",
+    ".cursor/rules/010-safety.mdc",
+    ".cursorignore",
+    "CLAUDE.md",
+    ".claude/README.md",
+    ".claude/settings.json",
+    "GEMINI.md",
+    ".antigravity/README.md",
+    "PERPLEXITY.md",
+    ".perplexity/README.md",
+    ".ai/README.md"
+  ],
+  "gitignore": [
+    ".env",
+    ".env.*",
+    "!.env.example",
+    "*.local",
+    ".claude/settings.local.json",
+    ".DS_Store"
+  ]
+}

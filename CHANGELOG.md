@@ -11,6 +11,30 @@ three scripts.
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-09-24
+
+### Added
+
+- `templates/<family>/*.tpl` + `layout.json` and a root `VERSION` file as the single source
+  of truth for generated text and the release number.
+- `tools/sync-templates.py` embeds them into a marked block in all six scripts (scripts stay
+  self-contained); CI runs `--check` and fails on a stale script.
+- `.ai/manifest.json` records the kit version, creation date, and the kit-owned files and
+  directories, so later releases can tell generated files from user files.
+
+### Changed
+
+- Shorter generated `AGENTS.md` (47 → 30 lines): Project, Commands, Conventions, Never,
+  Done means, Artifacts. Removed generic process rules ("show steps BEFORE executing",
+  rollback-plan checklist) that cost tokens and slow down autonomous agents.
+- README suggests letting an agent fill in the `AGENTS.md` TODOs from the codebase.
+- The repository's own `AGENTS.md` follows the new format.
+
+### Tests
+
+- `tests/compare-trees.py` checks that `.ai/manifest.json` is valid JSON and lists only
+  files that were actually written.
+
 ## [1.2.1] — 2026-09-24
 
 ### Changed
