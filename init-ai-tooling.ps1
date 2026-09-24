@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     init-ai-tooling.ps1 (1.2.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
@@ -414,7 +414,7 @@ if (-not $NoGitignore) {
             if ($DryRun) {
                 Say "gitignore += $line"
             } else {
-                if ((Test-Path $gitignorePath) -and ((Get-Item $gitignorePath).Length -gt 0)) {
+                if ([System.IO.File]::Exists($gitignorePath) -and (New-Object System.IO.FileInfo($gitignorePath)).Length -gt 0) {
                     $rawBytes = [System.IO.File]::ReadAllBytes($gitignorePath)
                     if ($rawBytes[-1] -ne 10) {
                         [System.IO.File]::AppendAllText($gitignorePath, "`n", $utf8NoBom)
