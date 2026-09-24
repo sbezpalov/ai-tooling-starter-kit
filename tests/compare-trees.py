@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Byte-for-byte comparison of two trees scaffolded by different init-ai-tooling implementations.
+"""Byte-for-byte comparison of two trees scaffolded by equivalent init implementations.
 
-The three scripts (bash / PowerShell / Python) must produce identical output.
-The only allowed divergence is the generator signature line at the end of
-AGENTS.md and .ai/README.md (release semver); it is normalized.
+Covers init-ai-tooling and init-repo-bootstrap (bash / PowerShell / Python).
+The only allowed divergence is the generator signature line (release semver);
+it is normalized. Codex contract checks run only for AI-family trees
+(AGENTS.md present). Repo-family trees get a lightweight governance stub check.
 
-Line endings are deliberately NOT normalized: all three implementations must
-write LF on every OS, and a mismatch here is a bug the test must catch.
+Line endings are deliberately NOT normalized: all implementations must write LF
+on every OS, and a mismatch here is a bug the test must catch.
 
 Usage:
     python3 tests/compare-trees.py DIR_A DIR_B
@@ -17,7 +18,9 @@ import os
 import re
 import sys
 
-SIGNATURE = re.compile(rb"init[-_]ai[-_]tooling(?:\.(?:sh|ps1|py))? \d+\.\d+\.\d+")
+SIGNATURE = re.compile(
+    rb"init[-_](?:ai[-_]tooling|repo[-_]bootstrap)(?:\.(?:sh|ps1|py))? \d+\.\d+\.\d+"
+)
 
 CODEX_CONTRACT = {
     "AGENTS.md": (
@@ -35,6 +38,18 @@ CODEX_FORBIDDEN_PATHS = {
     ".codex/config.toml",
     ".codex/artifacts/.gitkeep",
 }
+
+REPO_REQUIRED_PATHS = (
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+)
+
+REPO_LICENSE_MARKERS = (
+    b"LICENSE NOT CHOSEN",
+    b"It is NOT a grant of rights.",
+)
 
 
 def configure_stdio():
@@ -55,7 +70,7 @@ def snapshot(root):
             full = os.path.join(dirpath, name)
             rel = os.path.relpath(full, root).replace(os.sep, "/")
             with open(full, "rb") as fh:
-                files[rel] = SIGNATURE.sub(b"init-ai-tooling VERSION", fh.read())
+                files[rel] = SIGNATURE.sub(b"init-tooling VERSION", fh.read())
     return files
 
 
@@ -77,6 +92,27 @@ def validate_codex_contract(files, root):
     return problems
 
 
+def validate_repo_contract(files, root):
+    """Verify inert governance stubs (no silent real license)."""
+    problems = []
+    for rel in REPO_REQUIRED_PATHS:
+        if rel not in files:
+            problems.append("repo contract missing in %s: %s" % (root, rel))
+    license_content = files.get("LICENSE")
+    if license_content is not None:
+        for marker in REPO_LICENSE_MARKERS:
+            if marker not in license_content:
+                problems.append(
+                    "repo LICENSE stub marker missing in %s: %s" % (root, marker)
+                )
+        if b"Permission is hereby granted" in license_content:
+            problems.append(
+                "repo LICENSE looks like a real MIT grant in %s (expected inert stub)"
+                % root
+            )
+    return problems
+
+
 def main(argv):
     if len(argv) != 3:
         print(__doc__)
@@ -95,7 +131,11 @@ def main(argv):
             if b"\r\n" in a[rel] or b"\r\n" in b[rel]:
                 problems.append("    ^ CRLF found — LF expected on every OS")
 
-    problems.extend(validate_codex_contract(a, a_root))
+    if "AGENTS.md" in a:
+        problems.extend(validate_codex_contract(a, a_root))
+    # Independent of Codex: also-repo trees carry both families.
+    if "LICENSE" in a:
+        problems.extend(validate_repo_contract(a, a_root))
 
     if problems:
         print("DIFFERENCES (%d):" % len(problems))

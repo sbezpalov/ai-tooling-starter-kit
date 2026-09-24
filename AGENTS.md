@@ -20,13 +20,14 @@ Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / P
 <!-- TODO: table of "directory → purpose". -->
 | Path | Purpose |
 |------|---------|
-| `init-ai-tooling.sh` / `init_ai_tooling.py` / `init-ai-tooling.ps1` | Equivalent scaffolders |
-| `tests/compare-trees.py` | Byte-for-byte tree equivalence |
+| `init-ai-tooling.sh` / `init_ai_tooling.py` / `init-ai-tooling.ps1` | Equivalent AI scaffolders |
+| `init-repo-bootstrap.sh` / `init_repo_bootstrap.py` / `init-repo-bootstrap.ps1` | Equivalent repo-bootstrap companions (B+) |
+| `tests/compare-trees.py` | Byte-for-byte tree equivalence (AI + repo families) |
 | `README.md` / `README.ru.md` | Docs (EN default, RU alternate) |
 
 ## 4. Status / current priority
 <!-- TODO: where the project is now and what to focus on. -->
-Release **1.1.0**. English is the default language for scaffolds and primary docs.
+Release **1.2.0**. English is the default language for scaffolds and primary docs.
 
 ## 5. How to change things (agent)
 - Work from a plan: break the task down and show steps BEFORE executing.
@@ -34,7 +35,8 @@ Release **1.1.0**. English is the default language for scaffolds and primary doc
 - Produce artifacts (diff, list of changed files, rollback plan) before applying.
 - Keep changes atomic; explain WHAT and WHY.
 - New code ships with tests; the task is not "done" if tests/lint are failing.
-- Behaviour changes must land in **all three** init scripts at once.
+- Behaviour changes must land in **all three** scripts of the affected family at once
+  (AI and/or repo-bootstrap).
 
 ## 6. Security (NEVER)
 - Do not edit production directly <!-- TODO: delivery path, e.g. local → staging → prod via git -->.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_ai_tooling.py (1.1.0, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
+"""init_ai_tooling.py (1.2.0, AGENTS.md model) — cross-OS counterpart to init-ai-tooling.sh.
 
 Scaffolds an AI tooling layout (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
 in the current repository. Model: AGENTS.md = single source of truth; thin
@@ -12,15 +12,17 @@ touch existing files). Writes LF line endings on every OS. Output matches the
 bash version.
 
 Usage:
-    python3 init_ai_tooling.py [--name NAME] [--desc "DESC"] [--force] [--dry-run] [--no-gitignore]
+    python3 init_ai_tooling.py [--name NAME] [--desc "DESC"] [--force] [--dry-run]
+        [--no-gitignore] [--also-repo] [--repo-profile core|github|full]
 """
 import argparse
 import datetime
 import os
 from pathlib import Path
+import subprocess
 import sys
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 # ---------------------------------------------------------------------------
 # Artifact directories (each gets a .gitkeep)
@@ -306,6 +308,17 @@ def main(argv=None):
     p.add_argument("--dry-run", action="store_true", help="Print the plan, write nothing.")
     p.add_argument("--no-gitignore", action="store_true", help="Leave .gitignore alone.")
     p.add_argument(
+        "--also-repo",
+        action="store_true",
+        help="Also run sibling init_repo_bootstrap.py (B+).",
+    )
+    p.add_argument(
+        "--repo-profile",
+        default="full",
+        choices=("core", "github", "full"),
+        help="Profile for --also-repo (default: full; standalone companion defaults to core).",
+    )
+    p.add_argument(
         "--version",
         action="version",
         version="%(prog)s " + VERSION,
@@ -400,7 +413,36 @@ def main(argv=None):
     say("")
     say('Done (%s): AGENTS.md-model scaffold deployed for "%s".' % (VERSION, name))
     say("Next: fill in the TODOs in AGENTS.md — every tool reads context from there.")
-    if dry:
+
+    if args.also_repo:
+        companion = Path(__file__).resolve().parent / "init_repo_bootstrap.py"
+        if not companion.is_file():
+            say("error: --also-repo requires init_repo_bootstrap.py next to this script")
+            say("       expected: %s" % companion)
+            return 1
+        say("")
+        say("Also-repo: invoking init_repo_bootstrap.py --profile %s" % args.repo_profile)
+        cmd = [
+            sys.executable,
+            str(companion),
+            "--name", name,
+            "--desc", desc,
+            "--profile", args.repo_profile,
+        ]
+        if force:
+            cmd.append("--force")
+        if dry:
+            cmd.append("--dry-run")
+        rc = subprocess.call(cmd)
+        if rc != 0:
+            return rc
+    else:
+        say(
+            "Tip: run init_repo_bootstrap.py (or re-run with --also-repo) "
+            "for LICENSE/SECURITY/CHANGELOG stubs."
+        )
+
+    if dry and not args.also_repo:
         say("(dry-run: nothing was written)")
     return 0
 

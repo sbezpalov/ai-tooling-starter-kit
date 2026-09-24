@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
@@ -10,7 +10,7 @@
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **1.1.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **1.2.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
@@ -66,6 +66,23 @@ mkdir -p /tmp/a /tmp/b
 (cd /tmp/b && python3 /path/to/init_ai_tooling.py --name demo --desc "Test")
 python3 tests/compare-trees.py /tmp/a /tmp/b
 ```
+
+
+## Companion: repo bootstrap (B+)
+
+AI-каркас остаётся узким. Community/git stubs — в **отдельном** семействе с тем же
+тройным паритетом: `init-repo-bootstrap.{sh,py,ps1}`.
+
+Профили: `core` (LICENSE-заглушка + SECURITY/CHANGELOG/CONTRIBUTING), `github` (+ CODEOWNERS
+и issue/PR templates), `full` (+ Dependabot stub). LICENSE — **не** реальная лицензия.
+
+Один вызов из AI-init:
+
+```bash
+init-ai-tooling.sh --name my-project --desc "..." --also-repo
+```
+
+PowerShell: `-AlsoRepo` / `-RepoProfile`. Без флага AI-скрипт печатает tip про companion.
 
 ## Использование
 
@@ -142,5 +159,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 1.1.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 1.2.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*
