@@ -1,10 +1,11 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (1.3.0, AGENTS.md model) — PowerShell version for Windows 11/10.
+    init-ai-tooling.ps1 (2.0.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
 .DESCRIPTION
-    Deploys an AI tooling scaffold (Claude, Codex, Cursor, Antigravity/Gemini, Perplexity)
-    in the current repository. Model: AGENTS.md = single source of truth.
+    Deploys an AI tooling scaffold (Claude, Codex, Cursor, Gemini/Antigravity) in the
+    current repository. Model: AGENTS.md = single source of truth; CLAUDE.md and
+    GEMINI.md import it.
 
 .PARAMETER Name
     Project name (defaults to the current folder name).
@@ -27,6 +28,9 @@
 .PARAMETER RepoProfile
     Profile for -AlsoRepo: core | github | full (default: full).
 
+.PARAMETER PruneLegacy
+    List leftovers from older kit versions and exit (deletes nothing).
+
 .PARAMETER Version
     Print version and exit.
 
@@ -45,11 +49,12 @@ param (
     [switch]$AlsoRepo,
     [ValidateSet("core", "github", "full")]
     [string]$RepoProfile = "full",
+    [switch]$PruneLegacy,
     [switch]$Version
 )
 
 # Separate constant from -Version: PowerShell variable names are case-insensitive.
-$ToolVersion = "1.3.0"
+$ToolVersion = "2.0.0"
 
 $ErrorActionPreference = "Stop"
 
@@ -155,11 +160,7 @@ function Write-ProjectFile {
 $GitkeepDirs = @(
     ".ai/artifacts",
     ".claude/commands",
-    ".claude/agents",
-    ".claude/artifacts",
-    ".cursor/artifacts",
-    ".antigravity/artifacts",
-    ".perplexity/artifacts"
+    ".claude/agents"
 )
 $GitignoreLines = @(
     ".env",
@@ -168,6 +169,25 @@ $GitignoreLines = @(
     "*.local",
     ".claude/settings.local.json",
     ".DS_Store"
+)
+$LegacyFiles = @(
+    ".cursorrules",
+    "PERPLEXITY.md",
+    ".perplexity/README.md",
+    ".antigravity/README.md",
+    ".ai/shared-context.md",
+    ".cursor/README.md",
+    ".cursor/rules/.gitkeep",
+    ".perplexity/context.md",
+    ".perplexity/spaces/README.md",
+    ".antigravity/rules/000-workspace.md",
+    ".antigravity/rules/.gitkeep"
+)
+$LegacyArtifactDirs = @(
+    ".claude/artifacts",
+    ".cursor/artifacts",
+    ".antigravity/artifacts",
+    ".perplexity/artifacts"
 )
 
 # Templates in write order. Here-strings drop the final newline;
@@ -200,15 +220,10 @@ __DESC__
 Tests and lint pass for the change. <!-- TODO: add project-specific checks. -->
 
 ## Artifacts
-Plans, research, and other durable session results go in `.ai/artifacts/`; tool-specific
-folders are listed in `.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
+Plans, research, and other durable session results from every tool go in `.ai/artifacts/`.
+Codex reads this file natively and uses the shared artifacts directory.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
-'@ }
-    [pscustomobject]@{ Path = ".cursorrules"; Content = @'
-# Cursor reads this file for compatibility. SOURCE OF TRUTH — ./AGENTS.md.
-# Detailed rules — ./.cursor/rules/*.mdc. Read AGENTS.md before any work.
-See AGENTS.md
 '@ }
     [pscustomobject]@{ Path = ".cursor/rules/000-project.mdc"; Content = @'
 ---
@@ -265,7 +280,7 @@ Project rules live in `AGENTS.md`; the import below loads it into every Claude C
 @AGENTS.md
 
 ## Claude-specific
-- `.claude/commands/` — slash commands; `.claude/agents/` — subagents; `.claude/artifacts/` — artifacts.
+- `.claude/commands/` — slash commands; `.claude/agents/` — subagents.
 - Team settings — `.claude/settings.json`; personal — `.claude/settings.local.json` (do not commit).
 - `settings.json` deny rules are guardrails, not a sandbox — see `.claude/README.md`.
 '@ }
@@ -274,7 +289,7 @@ Project rules live in `AGENTS.md`; the import below loads it into every Claude C
 
 Source of truth — [`../AGENTS.md`](../AGENTS.md).
 
-- `commands/` — slash commands; `agents/` — subagents; `artifacts/` — Claude artifacts.
+- `commands/` — slash commands; `agents/` — subagents. Artifacts go in `../.ai/artifacts/`.
 - `settings.json` — team settings; `settings.local.json` — personal (do not commit).
 
 ## What `settings.json` does NOT protect
@@ -308,69 +323,36 @@ For real isolation use Claude Code's sandbox, a container/devcontainer, or a `Pr
 }
 '@ }
     [pscustomobject]@{ Path = "GEMINI.md"; Content = @'
-# GEMINI.md — Google Antigravity / Gemini
+# GEMINI.md — __NAME__
 
-> Antigravity reads both `AGENTS.md` and `GEMINI.md`; on conflict, `GEMINI.md` wins.
-> **Project source of truth — `AGENTS.md`; read it first.** Here — Antigravity/Gemini specifics.
+Project rules live in `AGENTS.md`; the import below loads it into Gemini CLI.
+Google Antigravity reads `AGENTS.md` natively.
 
-## Agent mode
-- Work from a plan (task/plan): break the task down and show steps before executing.
-- Human-in-the-loop: for production-data/core edits — stop and ask for confirmation.
-- Produce artifacts (diff, file list, rollback plan) before applying; save them in `.antigravity/artifacts/`.
-- Do not run shell commands against a production server/DB.
-- Keep changes atomic, with an explanation of WHAT and WHY.
-'@ }
-    [pscustomobject]@{ Path = ".antigravity/README.md"; Content = @'
-# .antigravity/ — Google Antigravity workspace
+@./AGENTS.md
 
-Rules — in [`../GEMINI.md`](../GEMINI.md); source of truth — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — plans, task lists, walkthroughs, browser recordings.
-'@ }
-    [pscustomobject]@{ Path = "PERPLEXITY.md"; Content = @'
-# PERPLEXITY.md — brief for Perplexity / research agents
-
-> Perplexity has no native repo config. This file is a **brief**: paste it into a
-> prompt / Space (or Comet) to set role, context, and boundaries. Project context comes from `AGENTS.md`.
-
-## Role
-Research/content assistant for __NAME__.
-<!-- TODO: clarify the role; whether it writes code; data access. -->
-
-## What to use it for
-<!-- TODO: research, fact-checking, drafts, competitive analysis. -->
-
-## Boundaries
-- Cite sources for facts; do not invent — mark unknowns as "needs verification".
-- <!-- TODO: domain limits (ads/medicine/legal/etc.). -->
-
-## Output format
-Structured (Markdown/table), easy to transfer. Save as an artifact in `.perplexity/artifacts/`.
-'@ }
-    [pscustomobject]@{ Path = ".perplexity/README.md"; Content = @'
-# .perplexity/ — Perplexity / research
-
-Paste-in brief — [`../PERPLEXITY.md`](../PERPLEXITY.md); context — [`../AGENTS.md`](../AGENTS.md).
-`artifacts/` — saved research reports (`YYYY-MM-DD-topic.md`; end with sources for verification).
+## Gemini-specific
+<!-- TODO: only what differs for Gemini CLI / Antigravity; leave empty if nothing does. -->
 '@ }
     [pscustomobject]@{ Path = ".ai/README.md"; Content = @'
 # .ai/ — AI tooling layout
 
 **Source of truth — [`../AGENTS.md`](../AGENTS.md)** (read natively by Codex, Cursor,
-Antigravity/Gemini, and others). Everything else is a thin redirect or tool-specific detail.
+Antigravity/Gemini, and others). Other files only add tool-specific detail.
 
 | Tool | File | Artifacts |
 |---|---|---|
 | All agents | `AGENTS.md` | `.ai/artifacts/` |
 | Codex (CLI / IDE / app) | `AGENTS.md` (native); optional `.codex/config.toml` | `.ai/artifacts/` |
-| Cursor | `.cursorrules` → AGENTS.md; `.cursor/rules/*.mdc`; `.cursorignore` | `.cursor/artifacts/` |
-| Claude (Code / Cowork) | `CLAUDE.md` → AGENTS.md; `.claude/` | `.claude/artifacts/` |
-| Antigravity / Gemini | `GEMINI.md` (+ AGENTS.md) | `.antigravity/artifacts/` |
-| Perplexity | `PERPLEXITY.md` (paste-in brief) | `.perplexity/artifacts/` |
+| Cursor | `AGENTS.md` (native); `.cursor/rules/*.mdc`; `.cursorignore` | `.ai/artifacts/` |
+| Claude (Code / Cowork) | `CLAUDE.md` (`@AGENTS.md` import); `.claude/` | `.ai/artifacts/` |
+| Gemini CLI / Antigravity | `GEMINI.md` (`@AGENTS.md` import); Antigravity reads `AGENTS.md` | `.ai/artifacts/` |
 
 ## Rule
 Project changes → edit **`AGENTS.md`**. Tool-specific detail → that tool's file.
 Codex needs no redirect file; add `.codex/config.toml` only for concrete repository-specific
 settings. An artifact is a durable session result (plan, research, diff, task list).
+`manifest.json` lists the files this kit generated; `--prune-legacy` reports leftovers
+from older kit versions.
 
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
 '@ }
@@ -380,7 +362,6 @@ settings. An artifact is a durable session result (plan, research, diff, task li
   "created": "__DATE__",
   "files": [
     "AGENTS.md",
-    ".cursorrules",
     ".cursor/rules/000-project.mdc",
     ".cursor/rules/010-safety.mdc",
     ".cursorignore",
@@ -388,25 +369,51 @@ settings. An artifact is a durable session result (plan, research, diff, task li
     ".claude/README.md",
     ".claude/settings.json",
     "GEMINI.md",
-    ".antigravity/README.md",
-    "PERPLEXITY.md",
-    ".perplexity/README.md",
     ".ai/README.md",
     ".ai/manifest.json"
   ],
   "dirs": [
     ".ai/artifacts",
     ".claude/commands",
-    ".claude/agents",
-    ".claude/artifacts",
-    ".cursor/artifacts",
-    ".antigravity/artifacts",
-    ".perplexity/artifacts"
+    ".claude/agents"
   ]
 }
 '@ }
 )
 # <<< END GENERATED
+
+# -PruneLegacy: report only, never deletes.
+if ($PruneLegacy) {
+    $found = 0
+    Say "Legacy paths from earlier kit versions (nothing is deleted):"
+    foreach ($rel in $LegacyFiles) {
+        if (Test-Path -LiteralPath $rel -PathType Leaf) {
+            Say "  $rel"
+            $found++
+        }
+    }
+    foreach ($rel in $LegacyArtifactDirs) {
+        if (-not (Test-Path -LiteralPath $rel -PathType Container)) { continue }
+        $found++
+        try {
+            $saved = @(Get-ChildItem -LiteralPath $rel -Force -ErrorAction Stop | Where-Object { $_.Name -ne ".gitkeep" }).Count
+        } catch {
+            Say "  $rel/ (unreadable: check it manually)"
+            continue
+        }
+        if ($saved -gt 0) {
+            Say "  $rel/ ($saved saved item(s): move them to .ai/artifacts/ first)"
+        } else {
+            Say "  $rel/"
+        }
+    }
+    if ($found -gt 0) {
+        Say "Review each path, then remove it, e.g.: git rm -r <path>"
+    } else {
+        Say "  none found"
+    }
+    exit 0
+}
 
 # 1) artifact directories + .gitkeep
 foreach ($d in $GitkeepDirs) {

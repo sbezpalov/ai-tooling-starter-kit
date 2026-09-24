@@ -1,0 +1,21 @@
+{
+  "generator": "init-ai-tooling 2.0.0",
+  "created": "2026-09-24",
+  "files": [
+    "AGENTS.md",
+    ".cursor/rules/000-project.mdc",
+    ".cursor/rules/010-safety.mdc",
+    ".cursorignore",
+    "CLAUDE.md",
+    ".claude/README.md",
+    ".claude/settings.json",
+    "GEMINI.md",
+    ".ai/README.md",
+    ".ai/manifest.json"
+  ],
+  "dirs": [
+    ".ai/artifacts",
+    ".claude/commands",
+    ".claude/agents"
+  ]
+}

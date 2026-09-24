@@ -6,8 +6,8 @@
 
 ## Project
 Starter kit that scaffolds a consistent AI-tooling layout (Claude, Codex, Cursor,
-Antigravity/Gemini, Perplexity) from three equivalent scripts (Bash / Python / PowerShell),
-plus a repo-bootstrap companion family. Release **1.3.0**; English is the default language
+Gemini/Antigravity) from three equivalent scripts (Bash / Python / PowerShell),
+plus a repo-bootstrap companion family. Release **2.0.0**; English is the default language
 for scaffolds and primary docs (`*.ru.md` are translations).
 
 ## Commands
@@ -29,6 +29,8 @@ names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
 - Output is LF on every OS; `.ps1` files are UTF-8 **with BOM** and CRLF on disk.
 - PowerShell templates are literal here-strings (`@'…'@`); substitution uses `.Replace()`.
 - Pitfalls already hit are listed in `CONTRIBUTING.md` — read it before touching `.ps1`.
+- Paths the kit no longer generates go in `layout.json` `legacy_files` / `legacy_artifact_dirs`
+  so `--prune-legacy` reports them.
 
 ## Never
 - Commit or print secrets (`.env`, keys, tokens); only `*.example` files belong in the repo.
@@ -40,5 +42,5 @@ names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
 behaviour changes are reflected in both READMEs and both CHANGELOGs.
 
 ## Artifacts
-Plans, research, and other durable session results go in `.ai/artifacts/`; tool-specific
-folders are listed in `.ai/README.md`. Codex reads this file natively and uses the shared artifacts directory.
+Plans, research, and other durable session results from every tool go in `.ai/artifacts/`.
+Codex reads this file natively and uses the shared artifacts directory.

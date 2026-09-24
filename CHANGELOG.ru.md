@@ -6,9 +6,40 @@
 English: [CHANGELOG.md](CHANGELOG.md).
 
 «Модель v2» / AGENTS.md-модель — архитектурное поколение каркаса, не номер релиза.
-Релизный semver живёт в константе `VERSION` / `$ToolVersion` трёх скриптов.
+Релизный semver живёт в корневом файле `VERSION`; `tools/sync-templates.py` переносит его в скрипты.
 
 ## [Unreleased]
+
+## [2.0.0] — 2026-09-24
+
+Ломающее изменение: генерируемая раскладка стала меньше. Codex, Cursor и Antigravity
+читают `AGENTS.md` нативно, а Claude Code и Gemini CLI импортируют его, поэтому файлы-
+редиректы и отдельные папки артефактов инструментов больше не нужны. См. README →
+«Обновление с предыдущей версии».
+
+### Добавлено
+
+- `--prune-legacy` / `-PruneLegacy`: показывает остатки 1.x и модели v1 (редиректы,
+  папки `artifacts/` инструментов, файлы хаба v1) и выходит. Ничего не удаляет; старые
+  папки артефактов с пользовательскими файлами помечаются «move them to .ai/artifacts/ first».
+- `tests/legacy-fixture.py` и шаги CI (bash, Python, PowerShell 5.1 и 7): отчёт одинаков
+  во всех реализациях и ничего не удаляет.
+
+### Изменено
+
+- `GEMINI.md` теперь импортирует `@./AGENTS.md` для Gemini CLI и содержит необязательный
+  раздел для Gemini; общие процессные правила убраны.
+- Все инструменты используют `.ai/artifacts/`; это отражено в `.ai/README.md`,
+  `CLAUDE.md` и `.claude/README.md`.
+- Список устаревших путей хранится в `templates/ai/layout.json` (`legacy_files`,
+  `legacy_artifact_dirs`).
+
+### Удалено
+
+- Генерируемые файлы: `.cursorrules`, `PERPLEXITY.md`, `.perplexity/README.md`,
+  `.antigravity/README.md` и папки `artifacts/` в `.claude/`, `.cursor/`, `.antigravity/`,
+  `.perplexity/`. `tests/compare-trees.py` падает, если каркас снова их создаст.
+- Ручной рецепт `rm` для миграции v1 → v2 в README — его заменяет `--prune-legacy`.
 
 ## [1.3.0] — 2026-09-24
 

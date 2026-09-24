@@ -1,16 +1,16 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
 
 Единый каркас конфигов для базового набора AI-инструментов — **Claude, Codex, Cursor,
-Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
+Gemini/Antigravity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **1.3.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **2.0.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
@@ -18,22 +18,20 @@ Antigravity/Gemini, Perplexity** — который разворачиваетс
 
 **`AGENTS.md` = единый источник истины.** Его читают нативно Codex, Cursor, Google
 Antigravity/Gemini и другие AGENTS-совместимые инструменты — поэтому контекст не нужно
-дублировать и не нужен «файл-указатель, который никто не открывает». Остальные файлы —
-тонкие редиректы/специфика в корне.
+дублировать и не нужен «файл-указатель, который никто не открывает». Claude Code и
+Gemini CLI получают его через импорт `@AGENTS.md`; остальные файлы — специфика инструментов.
 
 | Файл | Инструмент | Роль |
 |------|-----------|------|
 | `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, команды, соглашения, список «никогда» |
-| `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | редирект + правила (`000-project`, `010-safety`) |
+| `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | правила (`000-project`, `010-safety`); `AGENTS.md` Cursor читает нативно |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | импорт `@AGENTS.md` + `commands/`, `agents/`, `settings.json` |
-| `GEMINI.md` | Antigravity / Gemini | агент-специфика (приоритет при конфликте) |
-| `PERPLEXITY.md` | Perplexity | вставляемый бриф (роль/границы/формат) |
-| `.ai/README.md` + `.ai/artifacts/` | — | карта раскладки + кросс-инструментальные артефакты |
+| `GEMINI.md` | Gemini CLI / Antigravity | импорт `@./AGENTS.md` + специфика Gemini; Antigravity читает `AGENTS.md` нативно |
+| `.ai/README.md` + `.ai/artifacts/` | — | карта раскладки + артефакты всех инструментов |
 | `.ai/manifest.json` | — | версия кита + список файлов кита (для будущих обновлений) |
 
-Инструментальные артефакты хранятся в `.claude/artifacts/`, `.cursor/artifacts/`,
-`.antigravity/artifacts/` и `.perplexity/artifacts/`; общие артефакты и результаты Codex —
-в `.ai/artifacts/`.
+Планы, исследования и другие долговечные результаты сессий всех инструментов лежат в
+одном месте — `.ai/artifacts/`.
 
 Codex не нужен файл-редирект: он нативно находит `AGENTS.md`. Кит намеренно оставляет
 `.codex/config.toml` опциональным — модель, разрешения и интеграции стоит настраивать,
@@ -112,6 +110,9 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "What this project 
 | `--force` | `-Force` | Перезаписывать существующие файлы |
 | `--dry-run` | `-DryRun` | Показать план, ничего не писать |
 | `--no-gitignore` | `-NoGitignore` | Не трогать `.gitignore` |
+| `--also-repo` | `-AlsoRepo` | Заодно запустить companion repo-bootstrap |
+| `--repo-profile P` | `-RepoProfile P` | Профиль для `--also-repo` (`core`/`github`/`full`, по умолчанию `full`) |
+| `--prune-legacy` | `-PruneLegacy` | Показать остатки старых версий кита и выйти (ничего не удаляет) |
 | `--version` | `-Version` | Показать версию скрипта и выйти |
 | `-h`, `--help` | `-?`, `Get-Help` | Справка |
 
@@ -131,7 +132,7 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
    берут контекст оттуда. Быстрее всего поручить это агенту: *«Прочитай код и заполни TODO
    в AGENTS.md. Коротко — только то, что нельзя понять из кода»*. Проверь результат перед
    коммитом.
-2. При необходимости — доменные правила в `.cursor/rules/*.mdc` и роль в `PERPLEXITY.md`.
+2. При необходимости — доменные правила в `.cursor/rules/*.mdc` и специфика Gemini в `GEMINI.md`.
 3. Коммит: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
 ## Что `.claude/settings.json` защищает, а что нет
@@ -156,18 +157,24 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 дублирование (напр. свой `00-project.mdc` рядом с генерик `000-project.mdc`). Такие
 проекты стоит свести вручную: сделать их контент основой `AGENTS.md`, убрать дубли.
 
-## Миграция v1 → v2
+## Обновление с предыдущей версии
 
-Если проект был развёрнут по v1 (`.ai/shared-context.md` как хаб): удалить v1-хвосты
-и накатить v2 с `--force`:
+2.0 больше не создаёт `.cursorrules`, `PERPLEXITY.md`, `.perplexity/`, `.antigravity/` и
+отдельные папки `artifacts/` инструментов (`.claude/`, `.cursor/`); все инструменты теперь
+используют `.ai/artifacts/`. Чтобы почистить проект, развёрнутый версией 1.x (или моделью v1):
 
-```bash
-rm -f .ai/shared-context.md .cursor/README.md .perplexity/context.md \
-      .perplexity/spaces/README.md .antigravity/rules/000-workspace.md \
-      .antigravity/rules/.gitkeep .cursor/rules/.gitkeep
-rmdir .antigravity/rules 2>/dev/null || true
-init-ai-tooling.sh --name PROJECT --desc "..." --force
-```
+1. Получите список остатков — скрипт только сообщает и никогда не удаляет:
+
+   ```bash
+   init-ai-tooling.sh --prune-legacy        # PowerShell: -PruneLegacy
+   ```
+
+2. Перенесите всё, что отчёт помечает как *saved item(s)*, в `.ai/artifacts/`, затем
+   удалите перечисленные пути, например `git rm -r .cursorrules PERPLEXITY.md .perplexity .antigravity`.
+3. Запустите скрипт ещё раз **без** `--force`, чтобы добавить новые файлы вроде
+   `.ai/manifest.json`. Существующие файлы останутся. Чтобы взять новые `CLAUDE.md` /
+   `GEMINI.md` (импорт `@AGENTS.md`), не трогая заполненный `AGENTS.md`, разверните каркас
+   в пустой папке и скопируйте эти два файла.
 
 ## Как помочь проекту
 
@@ -183,5 +190,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 1.3.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 2.0.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*
