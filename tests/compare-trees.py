@@ -14,6 +14,7 @@ Usage:
     python3 tests/compare-trees.py DIR_A DIR_B
 Exit codes: 0 — trees match, 1 — differences found.
 """
+import json
 import os
 import re
 import sys
@@ -32,6 +33,8 @@ CODEX_CONTRACT = {
         b"optional `.codex/config.toml`",
     ),
 }
+
+MANIFEST_PATH = ".ai/manifest.json"
 
 # Claude Code loads AGENTS.md only via an explicit import line; a prose redirect
 # depends on the model choosing to open the file.
@@ -96,6 +99,20 @@ def validate_codex_contract(files, root):
     return problems
 
 
+def validate_manifest_contract(files, root):
+    """Verify .ai/manifest.json is valid JSON and lists exactly the kit-owned files."""
+    content = files.get(MANIFEST_PATH)
+    if content is None:
+        return ["manifest missing in %s: %s" % (root, MANIFEST_PATH)]
+    try:
+        manifest = json.loads(content.decode("utf-8"))
+    except ValueError as exc:
+        return ["manifest in %s is not valid JSON: %s" % (root, exc)]
+    listed = set(manifest.get("files", []))
+    return ["manifest in %s lists a file that was not written: %s" % (root, rel)
+            for rel in sorted(listed - set(files))]
+
+
 def validate_claude_contract(files, root):
     """Verify CLAUDE.md imports AGENTS.md instead of merely pointing at it."""
     content = files.get("CLAUDE.md")
@@ -148,6 +165,7 @@ def main(argv):
     if "AGENTS.md" in a:
         problems.extend(validate_codex_contract(a, a_root))
         problems.extend(validate_claude_contract(a, a_root))
+        problems.extend(validate_manifest_contract(a, a_root))
     # Independent of Codex: also-repo trees carry both families.
     if "LICENSE" in a:
         problems.extend(validate_repo_contract(a, a_root))

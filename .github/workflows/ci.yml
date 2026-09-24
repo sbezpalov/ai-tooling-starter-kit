@@ -24,7 +24,11 @@ jobs:
           shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
 
       - name: python syntax
-        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py
+        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py tools/sync-templates.py
+
+      # templates/ + VERSION are the source of truth; the scripts embed generated copies.
+      - name: generated template blocks are in sync
+        run: python3 tools/sync-templates.py --check
 
       - name: dry-run must write nothing
         run: |

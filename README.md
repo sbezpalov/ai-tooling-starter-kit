@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
@@ -10,7 +10,7 @@ One command that scaffolds a consistent config layout for the AI tools you actua
 **Claude, Codex, Cursor, Antigravity/Gemini, Perplexity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **1.2.1** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **1.3.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
@@ -22,12 +22,13 @@ AGENTS-aware tools read it natively, so context needs no duplication and there i
 
 | File | Tool | Role |
 |------|------|------|
-| `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, stack, rules, DoD, security |
+| `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, commands, conventions, "never" list |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | redirect + rules (`000-project`, `010-safety`) |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | `@AGENTS.md` import + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | agent specifics (wins on conflict) |
 | `PERPLEXITY.md` | Perplexity | paste-in brief (role / boundaries / output format) |
 | `.ai/README.md` + `.ai/artifacts/` | — | layout map + cross-tool artifacts |
+| `.ai/manifest.json` | — | kit version + list of kit-owned files (for future upgrades) |
 
 Tool-specific artifacts live in `.claude/artifacts/`, `.cursor/artifacts/`,
 `.antigravity/artifacts/`, and `.perplexity/artifacts/`; shared and Codex artifacts live
@@ -66,6 +67,10 @@ mkdir -p /tmp/a /tmp/b
 python3 tests/compare-trees.py /tmp/a /tmp/b
 ```
 
+**One source for the templates.** Generated text lives once, in `templates/<family>/*.tpl`
+plus `layout.json` (write order, `.gitkeep` directories, `.gitignore` lines) and the root
+`VERSION` file. `tools/sync-templates.py` embeds it into all six scripts, so each script
+still works on its own when copied anywhere; CI fails if an embedded copy is stale.
 
 ## Repo bootstrap companion (B+)
 
@@ -137,8 +142,10 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 
 ## After running
 
-1. Fill in the `TODO`s in **`AGENTS.md`** (stack, structure, status, security) — every tool
-   reads its context from there.
+1. Fill in the `TODO`s in **`AGENTS.md`** (project, commands, conventions, bans) — every
+   tool reads its context from there. The quickest route is to let your agent do it:
+   *"Read this codebase and fill in the TODOs in AGENTS.md. Keep it short — only what you
+   could not infer from the code."* Review the result before committing.
 2. Optionally add domain rules in `.cursor/rules/*.mdc` and a role in `PERPLEXITY.md`.
 3. Commit: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
@@ -190,5 +197,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 1.2.1 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 1.3.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*

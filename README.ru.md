@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
@@ -10,7 +10,7 @@
 Antigravity/Gemini, Perplexity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **1.2.1** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **1.3.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
@@ -23,12 +23,13 @@ Antigravity/Gemini и другие AGENTS-совместимые инструм�
 
 | Файл | Инструмент | Роль |
 |------|-----------|------|
-| `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, стек, правила, DoD, безопасность |
+| `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, команды, соглашения, список «никогда» |
 | `.cursorrules` + `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | редирект + правила (`000-project`, `010-safety`) |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | импорт `@AGENTS.md` + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Antigravity / Gemini | агент-специфика (приоритет при конфликте) |
 | `PERPLEXITY.md` | Perplexity | вставляемый бриф (роль/границы/формат) |
 | `.ai/README.md` + `.ai/artifacts/` | — | карта раскладки + кросс-инструментальные артефакты |
+| `.ai/manifest.json` | — | версия кита + список файлов кита (для будущих обновлений) |
 
 Инструментальные артефакты хранятся в `.claude/artifacts/`, `.cursor/artifacts/`,
 `.antigravity/artifacts/` и `.perplexity/artifacts/`; общие артефакты и результаты Codex —
@@ -67,6 +68,11 @@ mkdir -p /tmp/a /tmp/b
 python3 tests/compare-trees.py /tmp/a /tmp/b
 ```
 
+**Один источник шаблонов.** Генерируемый текст хранится один раз — в
+`templates/<семейство>/*.tpl` плюс `layout.json` (порядок записи, каталоги с `.gitkeep`,
+строки `.gitignore`) и корневой файл `VERSION`. `tools/sync-templates.py` встраивает его
+во все шесть скриптов, так что каждый скрипт по-прежнему работает сам по себе, куда бы его
+ни скопировали; CI падает, если встроенная копия устарела.
 
 ## Companion: repo bootstrap (B+)
 
@@ -121,7 +127,10 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 
 ## После запуска
 
-1. Заполни `TODO` в **`AGENTS.md`** (стек, структура, статус, безопасность) — все инструменты берут контекст оттуда.
+1. Заполни `TODO` в **`AGENTS.md`** (проект, команды, соглашения, запреты) — все инструменты
+   берут контекст оттуда. Быстрее всего поручить это агенту: *«Прочитай код и заполни TODO
+   в AGENTS.md. Коротко — только то, что нельзя понять из кода»*. Проверь результат перед
+   коммитом.
 2. При необходимости — доменные правила в `.cursor/rules/*.mdc` и роль в `PERPLEXITY.md`.
 3. Коммит: `git add -A && git commit -m "chore: scaffold AI tooling (AGENTS.md model)"`.
 
@@ -174,5 +183,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 1.2.1 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 1.3.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*
