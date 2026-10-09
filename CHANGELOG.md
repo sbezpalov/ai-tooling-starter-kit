@@ -11,6 +11,14 @@ copies it into the scripts.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A line break in `--desc` or `--name` broke the bash scripts.** The value went straight
+  into a sed command, where a raw newline ends the command: the run aborted with exit code 1
+  after leaving a 0-byte `AGENTS.md` (or `LICENSE`) behind and writing nothing else. Line
+  breaks are now escaped; a multi-line description renders the same in bash, Python and
+  PowerShell. Applies to `init-ai-tooling.sh` and `init-repo-bootstrap.sh`.
+
 ## [2.0.0] — 2026-09-24
 
 Breaking: the generated layout shrinks. Codex, Cursor, and Antigravity read `AGENTS.md`

@@ -59,6 +59,22 @@ jobs:
           (cd "$RUNNER_TEMP/repo-py" && python3 "$GITHUB_WORKSPACE/init_repo_bootstrap.py" --name ci-demo --desc "CI" --profile full)
           python3 tests/compare-trees.py "$RUNNER_TEMP/repo-bash" "$RUNNER_TEMP/repo-py"
 
+      # A line break in --desc used to end the sed command in the bash version:
+      # the run aborted and left a 0-byte file behind. Delimiter, ampersand and
+      # backslash ride along — they are the other characters sed treats specially.
+      - name: multi-line description — bash == python, no empty files
+        run: |
+          DESC="$(printf 'First line: a|b & c\\d\nsecond line\nthird')"
+          mkdir -p "$RUNNER_TEMP/ml-bash" "$RUNNER_TEMP/ml-py" "$RUNNER_TEMP/mlr-bash" "$RUNNER_TEMP/mlr-py"
+          (cd "$RUNNER_TEMP/ml-bash" && bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "$DESC")
+          (cd "$RUNNER_TEMP/ml-py" && python3 "$GITHUB_WORKSPACE/init_ai_tooling.py" --name ci-demo --desc "$DESC")
+          (cd "$RUNNER_TEMP/mlr-bash" && bash "$GITHUB_WORKSPACE/init-repo-bootstrap.sh" --name ci-demo --desc "$DESC" --profile full)
+          (cd "$RUNNER_TEMP/mlr-py" && python3 "$GITHUB_WORKSPACE/init_repo_bootstrap.py" --name ci-demo --desc "$DESC" --profile full)
+          python3 tests/compare-trees.py "$RUNNER_TEMP/ml-bash" "$RUNNER_TEMP/ml-py"
+          python3 tests/compare-trees.py "$RUNNER_TEMP/mlr-bash" "$RUNNER_TEMP/mlr-py"
+          grep -q '^second line$' "$RUNNER_TEMP/ml-bash/AGENTS.md"
+          test -z "$(find "$RUNNER_TEMP/ml-bash" "$RUNNER_TEMP/mlr-bash" -type f -size 0 ! -name .gitkeep)"
+
       - name: also-repo bash == python
         run: |
           mkdir -p "$RUNNER_TEMP/also-bash" "$RUNNER_TEMP/also-py"
