@@ -18,6 +18,13 @@ copies it into the scripts.
   after leaving a 0-byte `AGENTS.md` (or `LICENSE`) behind and writing nothing else. Line
   breaks are now escaped; a multi-line description renders the same in bash, Python and
   PowerShell. Applies to `init-ai-tooling.sh` and `init-repo-bootstrap.sh`.
+- **`--also-repo` did not work from a symlink.** `init-ai-tooling.sh` and
+  `init-ai-tooling.ps1` looked for the companion script next to the link, not next to the
+  real script. Symlinks are now followed (PowerShell 7.3+; Windows PowerShell 5.1 keeps the
+  script's own directory). The README no longer suggests `install` (a copy has no companion)
+  and says so; the error message does too.
+- **`init-ai-tooling.ps1 -AlsoRepo` always exited with 1 when the companion failed.** It now
+  passes the companion's own exit code on, as the bash and Python versions do.
 
 ## [2.0.0] — 2026-09-24
 
