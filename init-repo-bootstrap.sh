@@ -68,8 +68,13 @@ write_file() {
   if [ "$DRYRUN" = "1" ]; then say "write  $path"; cat >/dev/null; return 0; fi
   mkdir -p "$(dirname "$path")"; cat > "$path"; say "write  $path"
 }
+# Escape a value for the replacement side of sed's s|…|…|: backslash, ampersand,
+# the delimiter — and line breaks. A raw newline ends the sed command ("unescaped
+# newline inside substitute pattern"), which used to abort the run after leaving
+# a 0-byte file behind; a backslash before each newline keeps a multi-line
+# --desc intact, the same way the Python and PowerShell versions render it.
 escape_sed() {
-  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g' -e '$!s/$/\\/'
 }
 render() {
   local safe_name safe_desc safe_date safe_year safe_version
