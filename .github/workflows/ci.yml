@@ -75,6 +75,23 @@ jobs:
           grep -q '^second line$' "$RUNNER_TEMP/ml-bash/AGENTS.md"
           test -z "$(find "$RUNNER_TEMP/ml-bash" "$RUNNER_TEMP/mlr-bash" -type f -size 0 ! -name .gitkeep)"
 
+      # "Install globally": a symlink on PATH must still find the companion script;
+      # a bare copy has none and must say so instead of half-finishing.
+      - name: also-repo through a symlink finds the companion, a bare copy refuses
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/link-tree" "$RUNNER_TEMP/direct-tree" "$RUNNER_TEMP/copy-tree"
+          ln -s "$GITHUB_WORKSPACE/init-ai-tooling.sh" "$RUNNER_TEMP/bin/ai-init"
+          ln -s ai-init "$RUNNER_TEMP/bin/ai-init-again"
+          cp "$GITHUB_WORKSPACE/init-ai-tooling.sh" "$RUNNER_TEMP/bin/ai-copy"
+          (cd "$RUNNER_TEMP/link-tree" && "$RUNNER_TEMP/bin/ai-init-again" --name ci-demo --desc "CI" --also-repo)
+          (cd "$RUNNER_TEMP/direct-tree" && bash "$GITHUB_WORKSPACE/init-ai-tooling.sh" --name ci-demo --desc "CI" --also-repo)
+          python3 tests/compare-trees.py "$RUNNER_TEMP/link-tree" "$RUNNER_TEMP/direct-tree"
+          cd "$RUNNER_TEMP/copy-tree"
+          if bash "$RUNNER_TEMP/bin/ai-copy" --name ci-demo --desc "CI" --also-repo 2>err.txt; then
+            echo "a bare copy must refuse --also-repo"; exit 1
+          fi
+          grep -q "copy both" err.txt
+
       - name: also-repo bash == python
         run: |
           mkdir -p "$RUNNER_TEMP/also-bash" "$RUNNER_TEMP/also-py"

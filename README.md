@@ -135,10 +135,14 @@ Idempotent: without `--force` nothing existing is touched, so re-running is safe
 ## Install globally
 
 ```bash
-install -m755 init-ai-tooling.sh ~/bin/ai-init      # if ~/bin is on PATH
+ln -s /path/to/ai-tooling-starter-kit/init-ai-tooling.sh ~/bin/ai-init   # if ~/bin is on PATH
 # or an alias:
 alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 ```
+
+Link or alias rather than copy: `--also-repo` runs `init-repo-bootstrap.sh`, which has to sit
+next to the real script — a symlink is followed to it, a copied file has no companion and
+`--also-repo` stops with an error. If you do copy, copy both scripts into the same directory.
 
 ## After running
 

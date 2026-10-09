@@ -366,11 +366,20 @@ say "Done (${VERSION}): AGENTS.md-model scaffold deployed for \"${NAME}\"."
 say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
 
 if [ "$ALSO_REPO" = "1" ]; then
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  # The companion lives next to the real script: follow symlinks, so a link in
+  # ~/bin (see "Install globally" in the README) still finds it.
+  SELF="${BASH_SOURCE[0]}"
+  while [ -L "$SELF" ]; do
+    LINK_DIR="$(cd "$(dirname "$SELF")" && pwd)"
+    SELF="$(readlink "$SELF")"
+    case "$SELF" in /*) ;; *) SELF="${LINK_DIR}/${SELF}" ;; esac
+  done
+  SCRIPT_DIR="$(cd "$(dirname "$SELF")" && pwd)"
   COMPANION="${SCRIPT_DIR}/init-repo-bootstrap.sh"
   if [ ! -f "$COMPANION" ]; then
     echo "error: --also-repo requires init-repo-bootstrap.sh next to this script" >&2
     echo "       expected: ${COMPANION}" >&2
+    echo "       a copied script has no companion: link it instead of copying, or copy both" >&2
     exit 1
   fi
   say ""

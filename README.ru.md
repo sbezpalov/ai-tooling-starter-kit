@@ -121,10 +121,15 @@ python3 /path/to/init_ai_tooling.py --name my-project --desc "What this project 
 ## Глобальная установка
 
 ```bash
-install -m755 init-ai-tooling.sh ~/bin/ai-init      # если ~/bin в PATH
+ln -s /path/to/ai-tooling-starter-kit/init-ai-tooling.sh ~/bin/ai-init   # если ~/bin в PATH
 # либо алиас:
 alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 ```
+
+Ссылка или алиас, а не копия: `--also-repo` запускает `init-repo-bootstrap.sh`, который должен
+лежать рядом с настоящим скриптом. По символической ссылке скрипт его находит; у скопированного
+файла второго скрипта рядом нет, и `--also-repo` остановится с ошибкой. Если всё же копируете —
+копируйте оба скрипта в один каталог.
 
 ## После запуска
 

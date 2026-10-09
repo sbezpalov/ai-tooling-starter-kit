@@ -460,9 +460,17 @@ Say "Done (${ToolVersion}): AGENTS.md-model scaffold deployed for `"$Name`"."
 Say "Next: fill in the TODOs in AGENTS.md — every tool reads context from there."
 
 if ($AlsoRepo) {
-    $companion = Join-Path $PSScriptRoot "init-repo-bootstrap.ps1"
+    # The companion lives next to the real script: follow a symlink, so a link
+    # on PATH still finds it. ResolvedTarget exists since PowerShell 7.3; older
+    # versions keep the script's own directory.
+    $selfDir = $PSScriptRoot
+    $selfItem = Get-Item -LiteralPath $PSCommandPath -Force
+    if ($selfItem.PSObject.Properties['ResolvedTarget'] -and $selfItem.ResolvedTarget) {
+        $selfDir = Split-Path -Parent $selfItem.ResolvedTarget
+    }
+    $companion = Join-Path $selfDir "init-repo-bootstrap.ps1"
     if (-not (Test-Path $companion)) {
-        throw "AlsoRepo requires init-repo-bootstrap.ps1 next to this script: $companion"
+        throw "AlsoRepo requires init-repo-bootstrap.ps1 next to this script: $companion (a copied script has no companion: link it instead of copying, or copy both)"
     }
     Say ""
     Say "Also-repo: invoking init-repo-bootstrap.ps1 -Profile $RepoProfile"
@@ -473,8 +481,14 @@ if ($AlsoRepo) {
     }
     if ($Force) { $companionArgs.Force = $true }
     if ($DryRun) { $companionArgs.DryRun = $true }
+    # Pass the companion's own exit code on, as the bash and Python versions do.
+    $global:LASTEXITCODE = 0
     & $companion @companionArgs
-    if (-not $?) {
+    $companionOk = $?
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+    if (-not $companionOk) {
         exit 1
     }
 } else {
