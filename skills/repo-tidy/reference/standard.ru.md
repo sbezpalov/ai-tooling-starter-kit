@@ -24,8 +24,7 @@ English: [standard.md](standard.md).
 ```text
 AGENTS.md                  источник истины (разделы ниже)
 CLAUDE.md GEMINI.md        импорт @AGENTS.md (или тонкий редирект) + специфика инструмента
-.cursorignore              (.cursorrules — только если проект его держит; Cursor читает AGENTS.md сам)
-PERPLEXITY.md              по потребности: вставляемый бриф Роль / Для чего / Границы / Формат выдачи
+.cursorignore              Cursor читает AGENTS.md сам; без .cursorrules (устарел)
 README.md                  точка входа для человека: что это, быстрый старт, структура
 CHANGELOG.md               раздел «## Unreleased»
 LICENSE SECURITY.md        правообладатель — реальный владелец проекта
@@ -59,8 +58,9 @@ docs/<прочее>/             architecture/, prd/, test-plans/, reviews/, rel
 6. `## 6. Безопасность (NEVER)`
 7. `## 7. Definition of Done`
 8. `## Раскладка инструментов` — начинается строкой
-   ``Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.``
-   (без отдельных папок инструментов — ``Артефакты — в `.ai/artifacts/`. Детали — `.ai/README.md`.``;
+   ``Артефакты — в `.ai/artifacts/` (общие для всех инструментов). Детали — `.ai/README.md`.``
+   (проект, который держит и папки инструментов, называет их:
+   ``Артефакты — в `.ai/artifacts/` (кросс) и `.<инструмент>/artifacts/`. Детали — `.ai/README.md`.``;
    английский вариант — `## Tool layout`).
 
 В англоязычных репозиториях заголовки — `## 1. Project` … `## Tool layout`; сверщик принимает
@@ -120,19 +120,22 @@ docs/<прочее>/             architecture/, prd/, test-plans/, reviews/, rel
     "allow": ["Read", "Edit"],
     "deny": ["Read(.env)", "Read(.env.*)", "Read(**/*.pem)", "Read(**/*.key)",
              "Read(**/.ssh/**)", "Read(**/.aws/**)", "Read(**/.kube/**)",
-             "Bash(rm -rf:*)", "Bash(git push --force:*)"]
+             "Bash(rm -rf:*)", "Bash(rm -fr:*)",
+             "Bash(git push --force:*)", "Bash(git push -f:*)"]
   }
 }
 ```
 
-Плюс секреты конкретного репозитория (`Read(config.yaml)`, `Read(deploy/x/compose.env)` …).
+Этот список генерирует кит; сверщик требует его целиком, кроме вариантов `rm -fr` и
+`git push -f`. Плюс секреты конкретного репозитория (`Read(config.yaml)`, `Read(deploy/x/compose.env)` …).
 Голое имя действует на любой глубине; расширение на любой глубине — `**/*.pem`. Запреты — в
 коммитимом файле, не в `settings.local.json`: иначе в свежем клоне их нет.
 
 ## `.gitignore`
 
-Минимум: `.env`, `.env.*` + `!.env.example`, `.DS_Store`, `.claude/settings.local.json`,
-`.claude/worktrees/`, `_to_delete/`, кэши языка. Если рядом лежит `config.example`/`*.example` —
+Кит пишет `.env`, `.env.*` + `!.env.example`, `*.local`, `.claude/settings.local.json`,
+`.claude/worktrees/`, `.DS_Store`; добавьте кэши языка. Сверщик требует `.env`, `.DS_Store`,
+`.claude/settings.local.json` и `.claude/worktrees/`. Если рядом лежит `config.example`/`*.example` —
 закрыт и рабочий файл.
 
 ## Git-гигиена

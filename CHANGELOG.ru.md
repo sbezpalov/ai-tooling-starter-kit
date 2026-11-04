@@ -23,6 +23,13 @@ English: [CHANGELOG.md](CHANGELOG.md).
 ### Изменено
 
 - Примеры ADR-префикса в справке и README нейтральные (`API`, `web-portal` → `WEB`).
+- Стандарт `repo-tidy` (+ `.ru`) совпадает с тем, что генерирует кит: без `PERPLEXITY.md` /
+  `.cursorrules` (кит считает их устаревшими), полный генерируемый deny-список и строки
+  `.gitignore` (без `_to_delete/`), генерируемая строка «Раскладка инструментов».
+- README: запуск repo-bootstrap отдельно с таблицей опций (`--profile`, `--adr-prefix`);
+  русский раздел companion теперь говорит то же, что английский.
+- CONTRIBUTING: проверки repo-tidy в «Проверить локально» и правило, что изменение раскладки
+  обновляет стандарт и сверщик навыка в том же изменении.
 - Действия CI: `actions/checkout` v5 → v7, `actions/upload-artifact` v5 → v7,
   `actions/download-artifact` v5 → v8.
 

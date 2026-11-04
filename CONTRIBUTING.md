@@ -35,6 +35,11 @@ Repo-bootstrap family (same rule):
 CI compares scaffolded trees byte for byte (AI trees, repo trees, and `--also-repo`
 combined trees) and fails if a single character diverges.
 
+**The `repo-tidy` skill describes what the kit generates.** A change to the generated layout
+(sections, files, deny list, `.gitignore` lines) lands in the same change as
+`skills/repo-tidy/reference/standard.md` + `standard.ru.md` and, if a rule changes,
+`skills/repo-tidy/scripts/check_layout.py`.
+
 When bumping a release, edit the root `VERSION` file and run
 `python3 tools/sync-templates.py` (it updates the constant and header in all six scripts),
 then update `CHANGELOG.md` + `CHANGELOG.ru.md` and the version badge in both READMEs.
@@ -51,6 +56,11 @@ mkdir -p /tmp/ra /tmp/rb
 (cd /tmp/ra && ./init-repo-bootstrap.sh --name demo --desc "Test" --profile full)
 (cd /tmp/rb && python3 ./init_repo_bootstrap.py --name demo --desc "Test" --profile full)
 python3 tests/compare-trees.py /tmp/ra /tmp/rb
+
+python3 tools/sync-templates.py --check
+shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
+python3 skills/repo-tidy/scripts/check_layout.py .   # expect 0 errors
+python3 skills/repo-tidy/scripts/md_links.py .       # expect 0 broken links
 ```
 
 With PowerShell 7 (`pwsh`) installed, the `.ps1` scripts run on macOS/Linux too; CI

@@ -24,6 +24,13 @@ copies it into the scripts.
 ### Changed
 
 - ADR prefix examples in help text and READMEs are neutral (`API`, `web-portal` → `WEB`).
+- `repo-tidy` standard (+ `.ru`) matches what the kit generates: no `PERPLEXITY.md` /
+  `.cursorrules` (the kit reports them as legacy), the full generated deny list and
+  `.gitignore` lines (no `_to_delete/`), and the generated "Tool layout" line.
+- READMEs: standalone repo-bootstrap usage with its options table (`--profile`,
+  `--adr-prefix`); the Russian companion section now says the same as the English one.
+- CONTRIBUTING: the repo-tidy checks in "Check locally", and the rule that a layout change
+  updates the skill's standard and checker in the same change.
 - CI actions: `actions/checkout` v5 → v7, `actions/upload-artifact` v5 → v7,
   `actions/download-artifact` v5 → v8.
 
