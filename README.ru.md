@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [English](README.md) · **Русский**
@@ -10,7 +10,7 @@
 Gemini/Antigravity** — который разворачивается одной командой в любом
 новом проекте. Экономит время и токены: контекст проекта описывается один раз.
 
-Текущий релиз: **2.0.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
+Текущий релиз: **2.1.0** (см. [CHANGELOG.md](CHANGELOG.md) / [CHANGELOG.ru.md](CHANGELOG.ru.md)).
 «Модель v2» ниже — название архитектурного поколения (AGENTS.md), не semver.
 Шаблоны каркаса и вывод CLI по умолчанию на **английском**; русские документы — в `*.ru.md`.
 
@@ -202,5 +202,5 @@ Issues и pull request'ы приветствуются — см. [CONTRIBUTING.m
 открытые проекты.
 
 ---
-*Релиз 2.0.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
+*Релиз 2.1.0 проверяется в CI: dry-run, реальный прогон, идемпотентность и побайтовое
 совпадение результата трёх реализаций (ubuntu + windows-latest, PowerShell 5.1 и 7).*

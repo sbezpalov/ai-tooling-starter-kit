@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-repo-bootstrap.sh (2.0.0) — community/git repository bootstrap companion.
+# init-repo-bootstrap.sh (2.1.0) — community/git repository bootstrap companion.
 #
 # Scaffolds inert governance stubs, .gitattributes / .editorconfig, optional GitHub
 # community files and a docs/ map with an ADR registry.
@@ -8,7 +8,7 @@
 # Idempotent (without --force does not touch existing files). Self-contained.
 set -euo pipefail
 
-VERSION="2.0.0"
+VERSION="2.1.0"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; PROFILE="core"; ADR_PREFIX=""
 
 usage() {

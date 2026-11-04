@@ -11,6 +11,8 @@ copies it into the scripts.
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-11-04
+
 The generated layout now follows the repo-tidy tradition (see
 `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`).
 

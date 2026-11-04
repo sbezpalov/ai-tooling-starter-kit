@@ -1,7 +1,7 @@
 # AI Tooling Starter Kit
 
 [![CI](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/sbezpalov/ai-tooling-starter-kit/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** · [Русский](README.ru.md)
@@ -10,7 +10,7 @@ One command that scaffolds a consistent config layout for the AI tools you actua
 **Claude, Codex, Cursor, Gemini/Antigravity** — in any new project. Describe the
 project once; every tool reads the same context. Saves time and tokens.
 
-Current release: **2.0.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
+Current release: **2.1.0** (see [CHANGELOG.md](CHANGELOG.md)). “Model v2” below names
 the architectural generation (AGENTS.md), not the semver. Generated scaffolds and CLI
 output are **English** by default; Russian docs live in `*.ru.md`.
 
@@ -213,5 +213,5 @@ in **all three scripts at once**, or CI will catch the divergence. For security 
 projects freely.
 
 ---
-*Release 2.0.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
+*Release 2.1.0 is exercised by CI: dry-run, real run, idempotency, and byte-for-byte
 equality across all three implementations (ubuntu + windows-latest, PowerShell 5.1 and 7).*

@@ -10,6 +10,8 @@ English: [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-11-04
+
 Генерируемая раскладка теперь следует традиции repo-tidy (см.
 `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`).
 
