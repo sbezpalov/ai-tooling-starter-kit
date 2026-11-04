@@ -200,6 +200,30 @@ or the per-tool `artifacts/` folders (`.claude/`, `.cursor/`); every tool now sh
    imports) without touching a filled-in `AGENTS.md`, scaffold into an empty directory and
    copy those two files over.
 
+## Keeping a repository tidy: the `repo-tidy` skill
+
+[`skills/repo-tidy/`](skills/repo-tidy/SKILL.md) is an agent skill for the same layout
+tradition the kit generates, for repositories that already exist or have drifted:
+`AGENTS.md` sections, one `docs/` root with a map, an ADR registry with a repository prefix,
+dated artifacts, honest statuses, secrets closed off, git hygiene. The rules are in
+[`reference/standard.md`](skills/repo-tidy/reference/standard.md); two scripts (Python 3.9+,
+no dependencies) do the checking:
+
+```bash
+python3 skills/repo-tidy/scripts/check_layout.py /path/to/repo   # ✗ errors, ! warnings
+python3 skills/repo-tidy/scripts/md_links.py /path/to/repo --fix # repair relative links
+```
+
+To make it available to Claude Code in every project, link it into your skills folder, so
+updates to the kit reach it with `git pull`:
+
+```bash
+ln -s "$PWD/skills/repo-tidy" ~/.claude/skills/repo-tidy
+```
+
+Then ask the agent to "tidy this repository". CI runs the checker on this repository and on a
+fresh scaffold.
+
 ## Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)

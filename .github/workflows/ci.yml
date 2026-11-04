@@ -24,7 +24,7 @@ jobs:
           shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
 
       - name: python syntax
-        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py tests/legacy-fixture.py tools/sync-templates.py
+        run: python3 -m py_compile init_ai_tooling.py init_repo_bootstrap.py tests/compare-trees.py tests/legacy-fixture.py tools/sync-templates.py skills/repo-tidy/scripts/check_layout.py skills/repo-tidy/scripts/md_links.py
 
       # templates/ + VERSION are the source of truth; the scripts embed generated copies.
       - name: generated template blocks are in sync
@@ -91,6 +91,15 @@ jobs:
             echo "a bare copy must refuse --also-repo"; exit 1
           fi
           grep -q "copy both" err.txt
+
+      # skills/repo-tidy checks the layout tradition the kit generates: the repository
+      # itself and a fresh scaffold (AI + repo-bootstrap full) must pass with 0 errors.
+      - name: repo-tidy checker passes on the repo and on a fresh scaffold
+        run: |
+          python3 skills/repo-tidy/scripts/check_layout.py .
+          python3 skills/repo-tidy/scripts/md_links.py .
+          cd "$RUNNER_TEMP/direct-tree" && git init -q && git add -A
+          python3 "$GITHUB_WORKSPACE/skills/repo-tidy/scripts/check_layout.py" .
 
       - name: also-repo bash == python
         run: |

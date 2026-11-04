@@ -188,6 +188,30 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
    `GEMINI.md` (импорт `@AGENTS.md`), не трогая заполненный `AGENTS.md`, разверните каркас
    в пустой папке и скопируйте эти два файла.
 
+## Порядок в репозитории: навык `repo-tidy`
+
+[`skills/repo-tidy/`](skills/repo-tidy/SKILL.md) — навык агента для той же традиции
+раскладки, которую генерирует кит, — для уже существующих или «расползшихся» репозиториев:
+разделы `AGENTS.md`, один корень `docs/` с картой, реестр ADR с префиксом репозитория,
+датированные артефакты, честные статусы, закрытые секреты, git-гигиена. Правила — в
+[`reference/standard.ru.md`](skills/repo-tidy/reference/standard.ru.md); проверку делают два
+скрипта (Python 3.9+, без зависимостей):
+
+```bash
+python3 skills/repo-tidy/scripts/check_layout.py /path/to/repo   # ✗ ошибки, ! предупреждения
+python3 skills/repo-tidy/scripts/md_links.py /path/to/repo --fix # починка относительных ссылок
+```
+
+Чтобы навык был доступен Claude Code во всех проектах, сделайте ссылку в каталог навыков —
+тогда обновления кита приходят через `git pull`:
+
+```bash
+ln -s "$PWD/skills/repo-tidy" ~/.claude/skills/repo-tidy
+```
+
+Дальше попросите агента «приведи репозиторий в порядок». CI прогоняет сверщик на этом
+репозитории и на свежем скаффолде.
+
 ## Как помочь проекту
 
 Issues и pull request'ы приветствуются — см. [CONTRIBUTING.md](CONTRIBUTING.md)

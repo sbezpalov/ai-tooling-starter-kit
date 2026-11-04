@@ -10,6 +10,14 @@ English: [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
 
+### Добавлено
+
+- `skills/repo-tidy/`: навык агента для традиции раскладки, которую генерирует кит, —
+  `SKILL.md`, `reference/standard.md` (+ `standard.ru.md`), `scripts/check_layout.py`
+  (сообщения на английском) и `scripts/md_links.py`. README → «Порядок в репозитории».
+- CI прогоняет сверщик и проверку ссылок на репозитории и на свежем скаффолде AI +
+  repo-bootstrap.
+
 ## [2.1.0] — 2026-11-04
 
 Генерируемая раскладка теперь следует традиции repo-tidy (см.
