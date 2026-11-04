@@ -2,7 +2,7 @@
 
 | Status | Date | Related |
 |---|---|---|
-| Open — awaiting owner decision | 2026-11-04 | `AGENTS.md` §4, `templates/ai/`, `templates/repo/` |
+| Decided — all items adopted (see Decision) | 2026-11-04 | `AGENTS.md` §4, `templates/ai/`, `templates/repo/` |
 
 ## Context
 
@@ -32,3 +32,11 @@ the generator was **not** changed — doing that changes the product and its ver
   reported by the kit's own `--prune-legacy`.
 - ! no `docs/` — the public docs are the GitHub-standard root files (`README`,
   `CONTRIBUTING`, `SECURITY`, `CHANGELOG`, each with a `.ru.md` pair); no ADRs exist.
+
+## Decision (2026-11-04)
+
+The owner asked to apply everything. Items 1–4, 7 and 8 changed the generator (Unreleased
+in `CHANGELOG.md`). Items 5 and 6 changed the `repo-tidy` skill instead: its standard and
+`check_layout.py` now treat per-tool `artifacts/` folders and `.cursorrules` /
+`PERPLEXITY.md` as optional and accept the `@AGENTS.md` import. With that, this repository
+passes the checker with 0 errors.

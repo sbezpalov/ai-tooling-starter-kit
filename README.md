@@ -23,7 +23,7 @@ import; everything else is tool-specific detail.
 
 | File | Tool | Role |
 |------|------|------|
-| `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ project, commands, conventions, "never" list |
+| `AGENTS.md` | Codex (CLI / IDE / app), all agents | ★ numbered sections: project, stack, structure, status, how to change, "never" list, definition of done, tool layout |
 | `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | rules (`000-project`, `010-safety`); Cursor reads `AGENTS.md` natively |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | `@AGENTS.md` import + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Gemini CLI / Antigravity | `@./AGENTS.md` import + Gemini specifics; Antigravity reads `AGENTS.md` natively |
@@ -86,9 +86,15 @@ Profiles:
 
 | Profile | Writes |
 |---------|--------|
-| `core` (default for companion) | `LICENSE` stub (not a real license), `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md` |
+| `core` (default for companion) | `LICENSE` stub (not a real license), `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `.gitattributes` (LF), `.editorconfig` |
 | `github` | core + `.github/CODEOWNERS`, issue/PR templates |
-| `full` | github + `.github/dependabot.yml` stub |
+| `full` | github + `.github/dependabot.yml` stub, `docs/README.md` (documentation map), `docs/adr/README.md` (ADR registry) |
+
+ADRs are named `docs/adr/PREFIX-NNNN-topic.md` and referenced as `ADR PREFIX-0001`, so
+numbers stay unambiguous across repositories. Set the prefix with `--adr-prefix API`
+(`-AdrPrefix`; a letter, then up to 9 letters or digits). The default is the first ASCII
+word of the project name, upper-cased (`web-portal` → `WEB`); names without one get
+`PROJ`. `--also-repo` uses the default.
 
 One-shot orchestration from the AI init (default profile for this path: `full`):
 
@@ -146,7 +152,7 @@ next to the real script — a symlink is followed to it, a copied file has no co
 
 ## After running
 
-1. Fill in the `TODO`s in **`AGENTS.md`** (project, commands, conventions, bans) — every
+1. Fill in the `TODO`s in **`AGENTS.md`** (project, stack, structure, status, commands, bans) — every
    tool reads its context from there. The quickest route is to let your agent do it:
    *"Read this codebase and fill in the TODOs in AGENTS.md. Keep it short — only what you
    could not infer from the code."* Review the result before committing.

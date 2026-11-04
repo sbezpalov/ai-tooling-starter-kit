@@ -23,7 +23,7 @@ Gemini CLI получают его через импорт `@AGENTS.md`; ост�
 
 | Файл | Инструмент | Роль |
 |------|-----------|------|
-| `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ проект, команды, соглашения, список «никогда» |
+| `AGENTS.md` | Codex (CLI / IDE / приложение), все агенты | ★ нумерованные разделы: проект, стек, структура, статус, как вносить изменения, список «никогда», критерии готовности, раскладка инструментов |
 | `.cursor/rules/*.mdc` + `.cursorignore` | Cursor | правила (`000-project`, `010-safety`); `AGENTS.md` Cursor читает нативно |
 | `CLAUDE.md` + `.claude/` | Claude Code / Cowork | импорт `@AGENTS.md` + `commands/`, `agents/`, `settings.json` |
 | `GEMINI.md` | Gemini CLI / Antigravity | импорт `@./AGENTS.md` + специфика Gemini; Antigravity читает `AGENTS.md` нативно |
@@ -77,8 +77,15 @@ python3 tests/compare-trees.py /tmp/a /tmp/b
 AI-каркас остаётся узким. Community/git stubs — в **отдельном** семействе с тем же
 тройным паритетом: `init-repo-bootstrap.{sh,py,ps1}`.
 
-Профили: `core` (LICENSE-заглушка + SECURITY/CHANGELOG/CONTRIBUTING), `github` (+ CODEOWNERS
-и issue/PR templates), `full` (+ Dependabot stub). LICENSE — **не** реальная лицензия.
+Профили: `core` (LICENSE-заглушка + SECURITY/CHANGELOG/CONTRIBUTING, `.gitattributes` с LF,
+`.editorconfig`), `github` (+ CODEOWNERS и issue/PR templates), `full` (+ Dependabot stub,
+карта документации `docs/README.md` и реестр ADR `docs/adr/README.md`). LICENSE — **не**
+реальная лицензия.
+
+ADR называются `docs/adr/ПРЕФИКС-NNNN-тема.md`, ссылка — `ADR ПРЕФИКС-0001`, чтобы номера
+не путались между репозиториями. Префикс задаёт `--adr-prefix API` (`-AdrPrefix`; буква и
+до 9 букв или цифр). По умолчанию — первое ASCII-слово имени проекта заглавными
+(`web-portal` → `WEB`); если такого нет — `PROJ`. `--also-repo` берёт значение по умолчанию.
 
 Один вызов из AI-init:
 
@@ -133,7 +140,7 @@ alias ai-init="/path/to/ai-tooling-starter-kit/init-ai-tooling.sh"
 
 ## После запуска
 
-1. Заполни `TODO` в **`AGENTS.md`** (проект, команды, соглашения, запреты) — все инструменты
+1. Заполни `TODO` в **`AGENTS.md`** (проект, стек, структура, статус, команды, запреты) — все инструменты
    берут контекст оттуда. Быстрее всего поручить это агенту: *«Прочитай код и заполни TODO
    в AGENTS.md. Коротко — только то, что нельзя понять из кода»*. Проверь результат перед
    коммитом.

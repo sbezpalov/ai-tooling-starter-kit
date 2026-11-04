@@ -64,7 +64,12 @@ REPO_REQUIRED_PATHS = (
     "SECURITY.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
+    ".gitattributes",
+    ".editorconfig",
 )
+
+# A template placeholder (__NAME__, __ADR_PREFIX__, …) that survived rendering.
+LEFTOVER_PLACEHOLDER = re.compile(rb"__[A-Z][A-Z_]*__")
 
 REPO_LICENSE_MARKERS = (
     b"LICENSE NOT CHOSEN",
@@ -159,6 +164,17 @@ def validate_repo_contract(files, root):
     return problems
 
 
+def validate_placeholders(files, root):
+    """Every template placeholder must be substituted in every written file."""
+    problems = []
+    for rel, content in sorted(files.items()):
+        match = LEFTOVER_PLACEHOLDER.search(content)
+        if match:
+            problems.append("unrendered placeholder in %s: %s (%s)"
+                            % (root, rel, match.group(0).decode("ascii")))
+    return problems
+
+
 def main(argv):
     if len(argv) != 3:
         print(__doc__)
@@ -177,6 +193,7 @@ def main(argv):
             if b"\r\n" in a[rel] or b"\r\n" in b[rel]:
                 problems.append("    ^ CRLF found — LF expected on every OS")
 
+    problems.extend(validate_placeholders(a, a_root))
     if "AGENTS.md" in a:
         problems.extend(validate_codex_contract(a, a_root))
         problems.extend(validate_claude_contract(a, a_root))

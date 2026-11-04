@@ -11,6 +11,38 @@ copies it into the scripts.
 
 ## [Unreleased]
 
+The generated layout now follows the repo-tidy tradition (see
+`.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`).
+
+### Added
+
+- repo-bootstrap `core` writes `.gitattributes` (LF everywhere, CRLF for `.bat`/`.cmd`,
+  common binaries) and `.editorconfig`.
+- repo-bootstrap `full` writes `docs/README.md` (documentation map) and `docs/adr/README.md`
+  (ADR registry with a prefix table and rules: `docs/adr/PREFIX-NNNN-topic.md`,
+  references as `ADR PREFIX-0001`).
+- `--adr-prefix` / `-AdrPrefix` sets that prefix (a letter, then up to 9 letters or digits).
+  Default: the first ASCII word of the project name, upper-cased, at most 10 characters;
+  `PROJ` when the name has none. Identical in bash, Python and PowerShell; an invalid
+  value exits with code 2 and writes nothing.
+- `tests/compare-trees.py` fails on an unrendered `__PLACEHOLDER__` in any written file and
+  requires `.gitattributes` / `.editorconfig` in repo-family trees.
+
+### Changed
+
+- Generated `AGENTS.md` uses numbered sections: `1. Project`, `2. Stack`, `3. Structure`,
+  `4. Status / current priority`, `5. How to make changes (agent)`, `6. Security (NEVER)`,
+  `7. Definition of Done`, `Tool layout`. Commands and conventions merge into section 5;
+  Stack, Structure and Status are new one-line TODOs.
+- Generated `.ai/README.md` ends with a marker line below which repository-specific notes
+  (artifact index, commands, subagents) go.
+- Generated `.gitignore` lines include `.claude/worktrees/`.
+
+### Fixed
+
+- Generated `.claude/settings.json` denies `Read(**/*.pem)` / `Read(**/*.key)` instead of
+  `Read(**.pem)` / `Read(**.key)`: an unambiguous gitignore-style glob at any depth.
+
 ### Repository (no change to generated output)
 
 - Tidied with the `repo-tidy` layout checker. The repository's own `AGENTS.md` now uses
@@ -21,7 +53,7 @@ copies it into the scripts.
   matching `.gitattributes`.
 - `.ai/README.md` gets a repository-specific section with an artifact index.
 - `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md` lists where the generated
-  layout differs from that tradition. The generator is unchanged until the owner decides.
+  layout differed from that tradition and what was adopted.
 
 ### Fixed
 

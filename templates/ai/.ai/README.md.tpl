@@ -18,4 +18,6 @@ settings. An artifact is a durable session result (plan, research, diff, task li
 `manifest.json` lists the files this kit generated; `--prune-legacy` reports leftovers
 from older kit versions.
 
+<!-- Below: repository-specific notes (artifact index, commands, subagents). -->
+
 <!-- Initialized by init-ai-tooling __VERSION__ (__DATE__). -->
