@@ -96,6 +96,24 @@ numbers stay unambiguous across repositories. Set the prefix with `--adr-prefix 
 word of the project name, upper-cased (`web-portal` → `WEB`); names without one get
 `PROJ`. `--also-repo` uses the default.
 
+Run it on its own:
+
+```bash
+/path/to/init-repo-bootstrap.sh --name my-project --desc "..." --profile github
+python3 /path/to/init_repo_bootstrap.py --name my-project --profile full --adr-prefix API
+.\init-repo-bootstrap.ps1 -Name my-project -Profile full -AdrPrefix API
+```
+
+| Option (Bash/Python) | Option (PowerShell) | Meaning |
+|----------------------|---------------------|---------|
+| `--name NAME` | `-Name NAME` | Project name (defaults to the folder name) |
+| `--desc "TEXT"` | `-Desc "TEXT"` | One-line description |
+| `--profile P` | `-Profile P` | `core` (default), `github` or `full` |
+| `--adr-prefix PREFIX` | `-AdrPrefix PREFIX` | ADR prefix for `docs/adr/` (profile `full`) |
+| `--force` | `-Force` | Overwrite existing files |
+| `--dry-run` | `-DryRun` | Print the plan, write nothing |
+| `--version` | `-Version` | Print script version and exit |
+
 One-shot orchestration from the AI init (default profile for this path: `full`):
 
 ```bash

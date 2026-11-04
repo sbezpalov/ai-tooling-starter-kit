@@ -26,8 +26,7 @@ that follows this tradition; `scripts/check_layout.py` checks a repository again
 ```text
 AGENTS.md                  source of truth (sections below)
 CLAUDE.md GEMINI.md        @AGENTS.md import (or a thin redirect) + tool specifics
-.cursorignore              (.cursorrules only if the project keeps it; Cursor reads AGENTS.md itself)
-PERPLEXITY.md              as needed: paste-in brief Role / Purpose / Boundaries / Output format
+.cursorignore              Cursor reads AGENTS.md itself; no .cursorrules (legacy)
 README.md                  human entry point: what it is, quick start, structure
 CHANGELOG.md               "## Unreleased" section
 LICENSE SECURITY.md        copyright holder — the project's real owner
@@ -61,8 +60,9 @@ The first line is `# AGENTS.md — <repository>`. Required sections, in order:
 6. `## 6. Security (NEVER)`
 7. `## 7. Definition of Done`
 8. `## Tool layout` — starts with the line
-   ``Artifacts — in `.ai/artifacts/` (shared) and `.<tool>/artifacts/`. Details — `.ai/README.md`.``
-   (without per-tool folders: ``Artifacts — in `.ai/artifacts/`. Details — `.ai/README.md`.``).
+   ``Artifacts — in `.ai/artifacts/` (shared by every tool). Details — `.ai/README.md`.``
+   (a project that also keeps per-tool folders names them:
+   ``Artifacts — in `.ai/artifacts/` (shared) and `.<tool>/artifacts/`. Details — `.ai/README.md`.``).
 
 In Russian-language repositories the headings are `## 1. Проект` … `## Раскладка инструментов`;
 the checker accepts both. Extra sections may sit between the required ones; a clarification
@@ -123,20 +123,23 @@ executable conventions (`/commands`, subagents).
     "allow": ["Read", "Edit"],
     "deny": ["Read(.env)", "Read(.env.*)", "Read(**/*.pem)", "Read(**/*.key)",
              "Read(**/.ssh/**)", "Read(**/.aws/**)", "Read(**/.kube/**)",
-             "Bash(rm -rf:*)", "Bash(git push --force:*)"]
+             "Bash(rm -rf:*)", "Bash(rm -fr:*)",
+             "Bash(git push --force:*)", "Bash(git push -f:*)"]
   }
 }
 ```
 
-Plus the repository's own secrets (`Read(config.yaml)`, `Read(deploy/x/compose.env)` …).
+This is the list the kit generates; the checker requires all of it except the `rm -fr` and
+`git push -f` variants. Plus the repository's own secrets (`Read(config.yaml)`, `Read(deploy/x/compose.env)` …).
 A bare name applies at any depth; an extension at any depth — `**/*.pem`. Deny rules live in the
 committed file, not in `settings.local.json`: otherwise a fresh clone does not have them.
 
 ## `.gitignore`
 
-Minimum: `.env`, `.env.*` + `!.env.example`, `.DS_Store`, `.claude/settings.local.json`,
-`.claude/worktrees/`, `_to_delete/`, language caches. If a `config.example` / `*.example` sits
-next to it, the working file is ignored too.
+The kit writes `.env`, `.env.*` + `!.env.example`, `*.local`, `.claude/settings.local.json`,
+`.claude/worktrees/`, `.DS_Store`; add the language's caches. The checker requires `.env`,
+`.DS_Store`, `.claude/settings.local.json` and `.claude/worktrees/`. If a `config.example` /
+`*.example` sits next to it, the working file is ignored too.
 
 ## Git hygiene
 

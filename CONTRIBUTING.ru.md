@@ -34,6 +34,11 @@ Repo-bootstrap семейство (то же правило):
 
 CI сравнивает деревья побайтово (AI, repo и `--also-repo`) и упадёт при расхождении.
 
+**Навык `repo-tidy` описывает то, что генерирует кит.** Изменение генерируемой раскладки
+(разделы, файлы, deny-список, строки `.gitignore`) вносится в том же изменении, что и
+`skills/repo-tidy/reference/standard.md` + `standard.ru.md`, а если меняется правило — и
+`skills/repo-tidy/scripts/check_layout.py`.
+
 При бампе релиза измените корневой файл `VERSION` и запустите
 `python3 tools/sync-templates.py` (он обновит константу и заголовок во всех шести
 скриптах), затем `CHANGELOG.md` + `CHANGELOG.ru.md` и badge версии в обоих README.
@@ -50,6 +55,11 @@ mkdir -p /tmp/ra /tmp/rb
 (cd /tmp/ra && ./init-repo-bootstrap.sh --name demo --desc "Test" --profile full)
 (cd /tmp/rb && python3 ./init_repo_bootstrap.py --name demo --desc "Test" --profile full)
 python3 tests/compare-trees.py /tmp/ra /tmp/rb
+
+python3 tools/sync-templates.py --check
+shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
+python3 skills/repo-tidy/scripts/check_layout.py .   # ожидается 0 ошибок
+python3 skills/repo-tidy/scripts/md_links.py .       # ожидается 0 битых ссылок
 ```
 
 Если установлен PowerShell 7 (`pwsh`), скрипты `.ps1` запускаются и на macOS/Linux;

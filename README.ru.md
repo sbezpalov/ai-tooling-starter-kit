@@ -74,26 +74,57 @@ python3 tests/compare-trees.py /tmp/a /tmp/b
 
 ## Companion: repo bootstrap (B+)
 
-AI-каркас остаётся узким. Community/git stubs — в **отдельном** семействе с тем же
-тройным паритетом: `init-repo-bootstrap.{sh,py,ps1}`.
+AI-каркас остаётся узким. Community/git stubs — в **отдельном** companion-семействе с тем же
+тройным паритетом:
 
-Профили: `core` (LICENSE-заглушка + SECURITY/CHANGELOG/CONTRIBUTING, `.gitattributes` с LF,
-`.editorconfig`), `github` (+ CODEOWNERS и issue/PR templates), `full` (+ Dependabot stub,
-карта документации `docs/README.md` и реестр ADR `docs/adr/README.md`). LICENSE — **не**
-реальная лицензия.
+| Скрипт | Среда |
+|--------|-------|
+| `init-repo-bootstrap.sh` | Bash (macOS/Linux) |
+| `init_repo_bootstrap.py` | Python 3.6+, только stdlib |
+| `init-repo-bootstrap.ps1` | Windows PowerShell 5.1 / PowerShell 7+ |
+
+Профили:
+
+| Профиль | Что пишет |
+|---------|-----------|
+| `core` (по умолчанию для companion) | заглушка `LICENSE` (не настоящая лицензия), `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `.gitattributes` (LF), `.editorconfig` |
+| `github` | core + `.github/CODEOWNERS`, шаблоны issue/PR |
+| `full` | github + заглушка `.github/dependabot.yml`, `docs/README.md` (карта документации), `docs/adr/README.md` (реестр ADR) |
 
 ADR называются `docs/adr/ПРЕФИКС-NNNN-тема.md`, ссылка — `ADR ПРЕФИКС-0001`, чтобы номера
 не путались между репозиториями. Префикс задаёт `--adr-prefix API` (`-AdrPrefix`; буква и
 до 9 букв или цифр). По умолчанию — первое ASCII-слово имени проекта заглавными
 (`web-portal` → `WEB`); если такого нет — `PROJ`. `--also-repo` берёт значение по умолчанию.
 
-Один вызов из AI-init:
+Запуск отдельно:
+
+```bash
+/path/to/init-repo-bootstrap.sh --name my-project --desc "..." --profile github
+python3 /path/to/init_repo_bootstrap.py --name my-project --profile full --adr-prefix API
+.\init-repo-bootstrap.ps1 -Name my-project -Profile full -AdrPrefix API
+```
+
+| Опция (Bash/Python) | Опция (PowerShell) | Значение |
+|---------------------|--------------------|----------|
+| `--name NAME` | `-Name NAME` | Имя проекта (по умолчанию — имя папки) |
+| `--desc "TEXT"` | `-Desc "TEXT"` | Описание в одну строку |
+| `--profile P` | `-Profile P` | `core` (по умолчанию), `github` или `full` |
+| `--adr-prefix PREFIX` | `-AdrPrefix PREFIX` | Префикс ADR для `docs/adr/` (профиль `full`) |
+| `--force` | `-Force` | Перезаписать существующие файлы |
+| `--dry-run` | `-DryRun` | Показать план, ничего не писать |
+| `--version` | `-Version` | Показать версию скрипта и выйти |
+
+Один вызов из AI-init (профиль по умолчанию для этого пути — `full`):
 
 ```bash
 init-ai-tooling.sh --name my-project --desc "..." --also-repo
+# или
+python3 init_ai_tooling.py --name my-project --desc "..." --also-repo --repo-profile core
 ```
 
-PowerShell: `-AlsoRepo` / `-RepoProfile`. Без флага AI-скрипт печатает tip про companion.
+PowerShell: `-AlsoRepo` и `-RepoProfile`. Без флага AI-скрипт печатает подсказку про
+companion. Файл LICENSE — **инертная заглушка**: настоящую лицензию нужно выбрать и вставить
+самостоятельно.
 
 ## Использование
 
