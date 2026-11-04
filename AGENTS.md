@@ -32,10 +32,13 @@ Bash, Python 3.6+ (stdlib only), PowerShell 5.1 and 7+. CI — GitHub Actions
   (numbered `AGENTS.md` sections, deny-list globs, `.gitignore`, `docs/adr/`,
   `.gitattributes`, `.editorconfig`, `--adr-prefix`) — see
   `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`; plus the `--desc`
-  line-break, `--also-repo` symlink and `-AlsoRepo` exit-code fixes.
+  line-break, `--also-repo` symlink and `-AlsoRepo` exit-code fixes. Tagged `v2.1.0`, CI green.
+- Unreleased: `skills/repo-tidy/` (the layout skill, checker and link fixer) now lives in this
+  repository; CI runs the checker on the repository and on a fresh scaffold.
 - Tests: no unit suite — the check is the CI parity matrix. Locally: `sync-templates --check`,
-  `shellcheck`, and bash = Python = PowerShell trees for both families pass (2026-11-04).
-- Blocked: nothing. Next: push and confirm CI is green (incl. Windows PS 5.1), then tag `v2.1.0`.
+  `shellcheck`, bash = Python = PowerShell trees for both families, and the repo-tidy checker
+  pass (2026-11-04).
+- Blocked: nothing. Next: release the `repo-tidy` skill as 2.2.0.
 
 ## 5. How to make changes (agent)
 ```bash

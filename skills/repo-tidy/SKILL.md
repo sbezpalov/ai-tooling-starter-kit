@@ -18,7 +18,7 @@ Tools (paths relative to the skill directory):
 
 | Script | What it does |
 |---|---|
-| `scripts/check_layout.py <repo>` | Checks against the tradition: ✗ errors, ! warnings; exit 1 on errors |
+| `scripts/check_layout.py <repo>` | Checks against the tradition: ✗ errors, ! warnings; exit 1 on errors, 2 if a path is not a git work tree |
 | `scripts/md_links.py <repo> [--fix]` | Broken and "detour" relative links in Markdown; `--fix` repairs by unique basename / path tail |
 
 Both need Python 3.9+ and only inspect git-tracked files.

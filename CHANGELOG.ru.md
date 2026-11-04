@@ -17,6 +17,14 @@ English: [CHANGELOG.md](CHANGELOG.md).
   (сообщения на английском) и `scripts/md_links.py`. README → «Порядок в репозитории».
 - CI прогоняет сверщик и проверку ссылок на репозитории и на свежем скаффолде AI +
   repo-bootstrap.
+- `check_layout.py` и `md_links.py` завершаются с кодом 2 и однострочным сообщением, если
+  путь не существует или не является рабочим деревом git (раньше — трейсбек Python).
+
+### Изменено
+
+- Примеры ADR-префикса в справке и README нейтральные (`API`, `web-portal` → `WEB`).
+- Действия CI: `actions/checkout` v5 → v7, `actions/upload-artifact` v5 → v7,
+  `actions/download-artifact` v5 → v8.
 
 ## [2.1.0] — 2026-11-04
 

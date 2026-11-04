@@ -15,7 +15,7 @@ jobs:
     name: bash + python (ubuntu)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: shellcheck
         run: |
@@ -136,19 +136,19 @@ jobs:
             test -z "$(ls -A "$e")" || { echo "prune-legacy wrote files"; exit 1; }
           done
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
           include-hidden-files: true
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/repo-bash
           include-hidden-files: true
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
@@ -166,19 +166,19 @@ jobs:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/tree-repo-bash
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
@@ -293,19 +293,19 @@ jobs:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-bash
           path: ${{ runner.temp }}/tree-bash
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-repo-bash
           path: ${{ runner.temp }}/tree-repo-bash
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: tree-also-bash
           path: ${{ runner.temp }}/also-bash
