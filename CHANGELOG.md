@@ -11,6 +11,18 @@ copies it into the scripts.
 
 ## [Unreleased]
 
+### Repository (no change to generated output)
+
+- Tidied with the `repo-tidy` layout checker. The repository's own `AGENTS.md` now uses
+  numbered sections (Project, Stack, Structure, Status / current priority, How to make
+  changes, Security, Definition of Done, Tool layout); the rules themselves are unchanged.
+- `.claude/settings.json` denies `Read(**/*.pem)` / `Read(**/*.key)` instead of `**.pem` /
+  `**.key`; `.gitignore` adds `.claude/worktrees/` and `_to_delete/`; new `.editorconfig`
+  matching `.gitattributes`.
+- `.ai/README.md` gets a repository-specific section with an artifact index.
+- `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md` lists where the generated
+  layout differs from that tradition. The generator is unchanged until the owner decides.
+
 ### Fixed
 
 - **A line break in `--desc` or `--name` broke the bash scripts.** The value went straight
