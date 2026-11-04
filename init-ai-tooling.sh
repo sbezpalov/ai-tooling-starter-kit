@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-ai-tooling.sh (2.0.0, AGENTS.md model) — deploys an AI tooling scaffold
+# init-ai-tooling.sh (2.1.0, AGENTS.md model) — deploys an AI tooling scaffold
 # (Claude, Codex, Cursor, Gemini/Antigravity) in the current repository.
 #
 # Model: AGENTS.md = single source of truth (read natively by Codex, Cursor,
@@ -9,7 +9,7 @@
 # Idempotent (without --force does not touch existing files). Self-contained (templates inside).
 set -euo pipefail
 
-VERSION="2.0.0"
+VERSION="2.1.0"
 NAME=""; DESC=""; FORCE=0; DRYRUN=0; NO_GITIGNORE=0; PRUNE_LEGACY=0
 ALSO_REPO=0; REPO_PROFILE="full"
 

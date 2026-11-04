@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""init_repo_bootstrap.py (2.0.0) — community/git repository bootstrap companion.
+"""init_repo_bootstrap.py (2.1.0) — community/git repository bootstrap companion.
 
 Scaffolds inert governance stubs (LICENSE placeholder, SECURITY, CHANGELOG,
 CONTRIBUTING), .gitattributes / .editorconfig, optional GitHub community files and
@@ -22,7 +22,7 @@ import re
 from pathlib import Path
 import sys
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 PROFILES = ("core", "github", "full")
 # ADR prefix: a letter, then up to 9 letters or digits (ASCII), e.g. API, WEB.
 ADR_PREFIX_INPUT = re.compile(r"[A-Za-z][A-Za-z0-9]{0,9}\Z")

@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    init-ai-tooling.ps1 (2.0.0, AGENTS.md model) — PowerShell version for Windows 11/10.
+    init-ai-tooling.ps1 (2.1.0, AGENTS.md model) — PowerShell version for Windows 11/10.
 
 .DESCRIPTION
     Deploys an AI tooling scaffold (Claude, Codex, Cursor, Gemini/Antigravity) in the
@@ -54,7 +54,7 @@ param (
 )
 
 # Separate constant from -Version: PowerShell variable names are case-insensitive.
-$ToolVersion = "2.0.0"
+$ToolVersion = "2.1.0"
 
 $ErrorActionPreference = "Stop"
 

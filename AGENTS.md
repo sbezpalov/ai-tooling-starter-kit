@@ -27,16 +27,14 @@ Bash, Python 3.6+ (stdlib only), PowerShell 5.1 and 7+. CI — GitHub Actions
 | `.ai/`, `.claude/`, `.cursor/` | This repository's own AI layout, scaffolded by the kit (dogfood) |
 
 ## 4. Status / current priority
-- Release **2.0.0** (2026-09-24). `## [Unreleased]` in `CHANGELOG.md` holds the `--desc`
-  line-break fix, the `--also-repo` symlink fix, and the `-AlsoRepo` exit-code fix.
+- Release **2.1.0** (2026-11-04): the generated layout follows the repo-tidy tradition
+  (numbered `AGENTS.md` sections, deny-list globs, `.gitignore`, `docs/adr/`,
+  `.gitattributes`, `.editorconfig`, `--adr-prefix`) — see
+  `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`; plus the `--desc`
+  line-break, `--also-repo` symlink and `-AlsoRepo` exit-code fixes.
 - Tests: no unit suite — the check is the CI parity matrix. Locally: `sync-templates --check`,
   `shellcheck`, and bash = Python = PowerShell trees for both families pass (2026-11-04).
-- Unreleased also adopts the repo-tidy tradition in the generated layout (numbered
-  `AGENTS.md` sections, deny-list globs, `.gitignore`, `docs/adr/`, `.gitattributes`,
-  `.editorconfig`, `--adr-prefix`) — see
-  `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`.
-- Blocked: nothing. Next: bump `VERSION` (minor: 2.1.0), run `tools/sync-templates.py`,
-  date the Unreleased section, tag.
+- Blocked: nothing. Next: push and confirm CI is green (incl. Windows PS 5.1), then tag `v2.1.0`.
 
 ## 5. How to make changes (agent)
 ```bash
