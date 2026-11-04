@@ -11,6 +11,14 @@ copies it into the scripts.
 
 ## [Unreleased]
 
+### Added
+
+- `skills/repo-tidy/`: the agent skill for the layout tradition the kit generates —
+  `SKILL.md`, `reference/standard.md` (+ `standard.ru.md`), `scripts/check_layout.py`
+  (English messages) and `scripts/md_links.py`. README → "Keeping a repository tidy".
+- CI runs the checker and the link check on the repository and on a fresh AI +
+  repo-bootstrap scaffold.
+
 ## [2.1.0] — 2026-11-04
 
 The generated layout now follows the repo-tidy tradition (see

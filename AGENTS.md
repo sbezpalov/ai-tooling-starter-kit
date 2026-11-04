@@ -23,6 +23,7 @@ Bash, Python 3.6+ (stdlib only), PowerShell 5.1 and 7+. CI — GitHub Actions
 | `VERSION` | Release number, copied into the scripts by `tools/sync-templates.py` |
 | `tools/` | `sync-templates.py` — embeds `templates/` + `VERSION` into the six scripts |
 | `tests/` | `compare-trees.py` (byte-for-byte parity), `legacy-fixture.py` (`--prune-legacy` fixture) |
+| `skills/repo-tidy/` | Agent skill that checks and repairs a repository against the layout tradition the kit generates (`check_layout.py`, `md_links.py`) |
 | `.github/` | CI workflow |
 | `.ai/`, `.claude/`, `.cursor/` | This repository's own AI layout, scaffolded by the kit (dogfood) |
 
@@ -42,6 +43,8 @@ python3 tools/sync-templates.py            # after editing templates/ or VERSION
 python3 tools/sync-templates.py --check    # CI gate: generated blocks are current
 shellcheck init-ai-tooling.sh init-repo-bootstrap.sh
 python3 tests/compare-trees.py DIR_A DIR_B # byte-for-byte parity of two scaffolded trees
+python3 skills/repo-tidy/scripts/check_layout.py .   # layout tradition: 0 errors
+python3 skills/repo-tidy/scripts/md_links.py .       # 0 broken links
 ```
 The full parity matrix (dry-run, AI / repo / `--also-repo` trees, idempotency, hostile
 names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
@@ -54,6 +57,10 @@ names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
 - Output is LF on every OS; `.ps1` files are UTF-8 **with BOM** and CRLF on disk.
 - PowerShell templates are literal here-strings (`@'…'@`); substitution uses `.Replace()`.
 - Pitfalls already hit are listed in `CONTRIBUTING.md` — read it before touching `.ps1`.
+- A change to the generated layout and to `skills/repo-tidy/reference/standard.md` (+ `.ru.md`)
+  and `check_layout.py` lands together: the skill describes what the kit generates.
+- `skills/repo-tidy/` is English with `standard.ru.md` as the Russian pair; its scripts need
+  Python 3.9+ (they are tools, not scaffolded code).
 - Paths the kit no longer generates go in `layout.json` `legacy_files` / `legacy_artifact_dirs`
   so `--prune-legacy` reports them.
 
@@ -63,7 +70,8 @@ names, PS 5.1 + 7) lives in `.github/workflows/ci.yml`.
 - Add runtime dependencies to the scripts (stdlib Python 3.6+, Bash, PowerShell 5.1 only).
 
 ## 7. Definition of Done
-`tools/sync-templates.py --check`, `shellcheck`, and the three-way parity check pass;
+`tools/sync-templates.py --check`, `shellcheck`, the three-way parity check, and the
+repo-tidy checker (0 errors on the repository and on a fresh scaffold) pass;
 behaviour changes are reflected in both READMEs and both CHANGELOGs.
 
 ## Tool layout
