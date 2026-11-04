@@ -3,7 +3,8 @@
     init-repo-bootstrap.ps1 (2.0.0) — PowerShell community/git repository bootstrap.
 
 .DESCRIPTION
-    Scaffolds inert governance stubs and optional GitHub community files.
+    Scaffolds inert governance stubs, .gitattributes / .editorconfig, optional GitHub
+    community files and a docs/ map with an ADR registry.
     Does NOT choose a real license. Complements init-ai-tooling.ps1.
 
 .PARAMETER Name
@@ -14,6 +15,10 @@
 
 .PARAMETER Profile
     core (default) | github | full
+
+.PARAMETER AdrPrefix
+    ADR prefix for docs/adr/ (profile full), e.g. API; default: first word of the
+    name, upper-cased.
 
 .PARAMETER Force
     Overwrite existing files.
@@ -34,6 +39,7 @@ param (
     [string]$Desc = "",
     [ValidateSet("core", "github", "full")]
     [string]$Profile = "core",
+    [string]$AdrPrefix = "",
     [switch]$Force,
     [switch]$DryRun,
     [switch]$Version
@@ -61,6 +67,20 @@ if ([string]::IsNullOrWhiteSpace($Name)) {
 }
 if ([string]::IsNullOrWhiteSpace($Desc)) {
     $Desc = "TODO: short project description"
+}
+# ADR prefix: a letter, then up to 9 letters or digits (ASCII). The default is the
+# first ASCII alphanumeric run of the name, upper-cased, at most 10 characters —
+# identical to the bash and Python versions. [regex] is case-sensitive here.
+if ($AdrPrefix) {
+    if (-not [regex]::IsMatch($AdrPrefix, '\A[A-Za-z][A-Za-z0-9]{0,9}\z')) {
+        [Console]::Error.WriteLine("Invalid -AdrPrefix: $AdrPrefix (expected a letter followed by up to 9 letters or digits)")
+        exit 2
+    }
+    $AdrPrefix = $AdrPrefix.ToUpperInvariant()
+} else {
+    $AdrPrefix = [regex]::Match($Name, '[A-Za-z0-9]+').Value.ToUpperInvariant()
+    if ($AdrPrefix.Length -gt 10) { $AdrPrefix = $AdrPrefix.Substring(0, 10) }
+    if ($AdrPrefix.Length -eq 0 -or [char]::IsDigit($AdrPrefix[0])) { $AdrPrefix = "PROJ" }
 }
 $Date = (Get-Date -Format "yyyy-MM-dd")
 $Year = (Get-Date -Format "yyyy")
@@ -99,7 +119,7 @@ function Write-ProjectFile {
         Say ("write  " + ($RelPath -replace "\\", "/"))
         return
     }
-    $rendered = $Content.Replace("__NAME__", $Name).Replace("__DESC__", $Desc).Replace("__DATE__", $Date).Replace("__YEAR__", $Year).Replace("__VERSION__", $ToolVersion)
+    $rendered = $Content.Replace("__NAME__", $Name).Replace("__DESC__", $Desc).Replace("__DATE__", $Date).Replace("__YEAR__", $Year).Replace("__VERSION__", $ToolVersion).Replace("__ADR_PREFIX__", $AdrPrefix)
     Write-Utf8LfFile -Path $RelPath -Content $rendered
     Say ("write  " + ($RelPath -replace "\\", "/"))
 }
@@ -189,6 +209,52 @@ echo "No project checks defined yet"
 
 <!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
 '@ }
+    [pscustomobject]@{ Path = ".gitattributes"; Profile = "core"; Content = @'
+# Normalize line endings in the repository: LF everywhere (see .editorconfig).
+* text=auto eol=lf
+
+# Windows batch files need CRLF to run.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files: no line-ending conversion, no textual diff.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+'@ }
+    [pscustomobject]@{ Path = ".editorconfig"; Profile = "core"; Content = @'
+# https://editorconfig.org — matches .gitattributes: UTF-8, LF, final newline.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json,toml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[{Makefile,*.mk}]
+indent_style = tab
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+'@ }
     [pscustomobject]@{ Path = ".github/CODEOWNERS"; Profile = "github"; Content = @'
 # TODO: replace @TODO-OWNER with real GitHub usernames or teams.
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
@@ -265,6 +331,54 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+'@ }
+    [pscustomobject]@{ Path = "docs/README.md"; Profile = "full"; Content = @'
+# Documentation — __NAME__
+
+The only documentation root is `docs/`. This page is its map: section → what is inside →
+when to open it. Add a row when you add a section.
+
+| Section | What | When to open |
+|---|---|---|
+| [`adr/`](adr/README.md) | Architecture decision records and their registry | Before changing a past decision; when making a new one |
+
+## Conventions
+- Document header — a table `Status | Date | Related`. Status reflects reality:
+  `Draft`, `Blocked` (with the reason), `Ready`, `Accepted`, `Superseded`.
+- Procedures go in `docs/runbooks/`: when to apply, prerequisites, numbered idempotent
+  steps, abort criteria, rollback, escalation.
+- Requirements (PRD/SRS) only as real documents — no empty placeholders.
+- Plans, research and reviews from AI sessions are dated artifacts in `.ai/artifacts/`.
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+'@ }
+    [pscustomobject]@{ Path = "docs/adr/README.md"; Profile = "full"; Content = @'
+# Architecture decision records — __NAME__
+
+## Prefixes
+
+| Prefix | Repository |
+|---|---|
+| `__ADR_PREFIX__` | this repository |
+
+Add a row for each neighbouring repository whose ADRs you reference.
+
+## Rules
+- File: `docs/adr/__ADR_PREFIX__-NNNN-topic.md` — four digits, topic in lowercase Latin
+  letters and hyphens.
+- Reference in text, code and comments: `ADR __ADR_PREFIX__-0001`. Never a bare number:
+  it becomes ambiguous as soon as a neighbouring repository has its own decision 1.
+- Numbering is historical. A replaced decision gets `Superseded by __ADR_PREFIX__-NNNN`
+  and is not deleted.
+- Header: `Status | Date | Context | Related`; sections: Context → Options → Decision →
+  Consequences.
+
+## Registry
+
+| ADR | Status | Topic |
+|---|---|---|
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
 '@ }
 )
 # <<< END GENERATED

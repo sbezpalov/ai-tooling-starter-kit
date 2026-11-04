@@ -18,7 +18,7 @@ Bash, Python 3.6+ (stdlib only), PowerShell 5.1 and 7+. CI — GitHub Actions
 | Path | Purpose |
 |---|---|
 | `init-ai-tooling.{sh,ps1}`, `init_ai_tooling.py` | AI-layout family: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.claude/`, `.cursor/`, `.ai/` |
-| `init-repo-bootstrap.{sh,ps1}`, `init_repo_bootstrap.py` | Repo-bootstrap family: `LICENSE`, `CHANGELOG.md`, `SECURITY.md`, `.github/` templates |
+| `init-repo-bootstrap.{sh,ps1}`, `init_repo_bootstrap.py` | Repo-bootstrap family: `LICENSE`, `CHANGELOG.md`, `SECURITY.md`, `.gitattributes`, `.editorconfig`, `.github/` templates, `docs/` + ADR registry |
 | `templates/ai/`, `templates/repo/` | Source of truth for generated text (`*.tpl` + `layout.json`) |
 | `VERSION` | Release number, copied into the scripts by `tools/sync-templates.py` |
 | `tools/` | `sync-templates.py` — embeds `templates/` + `VERSION` into the six scripts |
@@ -31,11 +31,12 @@ Bash, Python 3.6+ (stdlib only), PowerShell 5.1 and 7+. CI — GitHub Actions
   line-break fix, the `--also-repo` symlink fix, and the `-AlsoRepo` exit-code fix.
 - Tests: no unit suite — the check is the CI parity matrix. Locally: `sync-templates --check`,
   `shellcheck`, and bash = Python = PowerShell trees for both families pass (2026-11-04).
-- Blocked: whether the generated layout should adopt the repo-tidy tradition (numbered
-  `AGENTS.md` sections, deny-list globs, `.gitignore` baseline, `docs/adr/`) is a product
-  decision awaiting the owner — see
+- Unreleased also adopts the repo-tidy tradition in the generated layout (numbered
+  `AGENTS.md` sections, deny-list globs, `.gitignore`, `docs/adr/`, `.gitattributes`,
+  `.editorconfig`, `--adr-prefix`) — see
   `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`.
-- Next: release the Unreleased fixes; then act on that decision.
+- Blocked: nothing. Next: bump `VERSION` (minor: 2.1.0), run `tools/sync-templates.py`,
+  date the Unreleased section, tag.
 
 ## 5. How to make changes (agent)
 ```bash

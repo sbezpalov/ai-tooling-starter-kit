@@ -10,6 +10,38 @@ English: [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
 
+Генерируемая раскладка теперь следует традиции repo-tidy (см.
+`.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md`).
+
+### Добавлено
+
+- repo-bootstrap `core` пишет `.gitattributes` (LF везде, CRLF для `.bat`/`.cmd`, типовые
+  бинарники) и `.editorconfig`.
+- repo-bootstrap `full` пишет `docs/README.md` (карта документации) и `docs/adr/README.md`
+  (реестр ADR с таблицей префиксов и правилами: `docs/adr/ПРЕФИКС-NNNN-тема.md`, ссылка —
+  `ADR ПРЕФИКС-0001`).
+- `--adr-prefix` / `-AdrPrefix` задаёт этот префикс (буква и до 9 букв или цифр). По
+  умолчанию — первое ASCII-слово имени проекта заглавными, не длиннее 10 символов; `PROJ`,
+  если такого слова нет. Одинаково в bash, Python и PowerShell; недопустимое значение —
+  код выхода 2, ничего не записывается.
+- `tests/compare-trees.py` падает на незаменённом `__ПЛЕЙСХОЛДЕРЕ__` в любом записанном файле
+  и требует `.gitattributes` / `.editorconfig` в деревьях repo-семейства.
+
+### Изменено
+
+- Генерируемый `AGENTS.md` разбит на нумерованные разделы: `1. Project`, `2. Stack`,
+  `3. Structure`, `4. Status / current priority`, `5. How to make changes (agent)`,
+  `6. Security (NEVER)`, `7. Definition of Done`, `Tool layout`. Команды и соглашения слиты
+  в раздел 5; Stack, Structure и Status — новые однострочные TODO.
+- Генерируемый `.ai/README.md` заканчивается строкой-пометкой, ниже которой пишется
+  специфика репозитория (индекс артефактов, команды, субагенты).
+- В строки генерируемого `.gitignore` добавлен `.claude/worktrees/`.
+
+### Исправлено
+
+- Генерируемый `.claude/settings.json` запрещает `Read(**/*.pem)` / `Read(**/*.key)` вместо
+  `Read(**.pem)` / `Read(**.key)`: однозначный glob в стиле gitignore на любой глубине.
+
 ### Репозиторий (генерируемый вывод не меняется)
 
 - Приведён в порядок сверщиком раскладки `repo-tidy`. Собственный `AGENTS.md` репозитория
@@ -20,7 +52,7 @@ English: [CHANGELOG.md](CHANGELOG.md).
   `.editorconfig` в согласии с `.gitattributes`.
 - В `.ai/README.md` появился раздел специфики репозитория с индексом артефактов.
 - `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md` перечисляет, где
-  генерируемая раскладка расходится с этой традицией. Генератор не меняется до решения владельца.
+  генерируемая раскладка расходилась с этой традицией и что из этого принято.
 
 ### Исправлено
 

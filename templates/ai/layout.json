@@ -21,6 +21,7 @@
     "!.env.example",
     "*.local",
     ".claude/settings.local.json",
+    ".claude/worktrees/",
     ".DS_Store"
   ],
   "legacy_files": [

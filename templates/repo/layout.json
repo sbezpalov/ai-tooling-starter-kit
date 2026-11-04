@@ -17,6 +17,14 @@
       "profile": "core"
     },
     {
+      "path": ".gitattributes",
+      "profile": "core"
+    },
+    {
+      "path": ".editorconfig",
+      "profile": "core"
+    },
+    {
       "path": ".github/CODEOWNERS",
       "profile": "github"
     },
@@ -34,6 +42,14 @@
     },
     {
       "path": ".github/dependabot.yml",
+      "profile": "full"
+    },
+    {
+      "path": "docs/README.md",
+      "profile": "full"
+    },
+    {
+      "path": "docs/adr/README.md",
       "profile": "full"
     }
   ]

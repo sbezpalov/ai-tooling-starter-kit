@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # init-repo-bootstrap.sh (2.0.0) — community/git repository bootstrap companion.
 #
-# Scaffolds inert governance stubs and optional GitHub community files.
+# Scaffolds inert governance stubs, .gitattributes / .editorconfig, optional GitHub
+# community files and a docs/ map with an ADR registry.
 # Does NOT choose a real license. Complements init-ai-tooling.sh.
 #
 # Idempotent (without --force does not touch existing files). Self-contained.
 set -euo pipefail
 
 VERSION="2.0.0"
-NAME=""; DESC=""; FORCE=0; DRYRUN=0; PROFILE="core"
+NAME=""; DESC=""; FORCE=0; DRYRUN=0; PROFILE="core"; ADR_PREFIX=""
 
 usage() {
   cat <<USAGE
@@ -16,21 +17,24 @@ init-repo-bootstrap.sh (${VERSION}) — community/git repository bootstrap.
 
 Usage:
   init-repo-bootstrap.sh [--name NAME] [--desc "DESC"] [--profile core|github|full]
-                         [--force] [--dry-run]
+                         [--adr-prefix PREFIX] [--force] [--dry-run]
 
 Options:
   --name NAME           Project name (defaults to the folder name).
   --desc TEXT           Short one-line description.
   --profile PROFILE     core (default) | github | full
+  --adr-prefix PREFIX   ADR prefix for docs/adr/ (profile full), e.g. API;
+                        default: first word of the name, upper-cased.
   --force               Overwrite existing files.
   --dry-run             Print the plan, write nothing.
   --version             Print version and exit.
   -h, --help            Show this help.
 
 Profiles:
-  core    LICENSE stub, SECURITY.md, CHANGELOG.md, CONTRIBUTING.md
+  core    LICENSE stub, SECURITY.md, CHANGELOG.md, CONTRIBUTING.md,
+          .gitattributes, .editorconfig
   github  core + CODEOWNERS, issue/PR templates
-  full    github + Dependabot stub
+  full    github + Dependabot stub, docs/README.md, docs/adr/README.md
 
 Does not choose a real license. Pair with init-ai-tooling.sh via --also-repo.
 USAGE
@@ -48,6 +52,7 @@ while [ $# -gt 0 ]; do
       esac
       shift 2
       ;;
+    --adr-prefix) ADR_PREFIX="${2:-}"; shift 2 ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRYRUN=1; shift ;;
     --version) printf '%s\n' "init-repo-bootstrap.sh ${VERSION}"; exit 0 ;;
@@ -58,6 +63,31 @@ done
 
 [ -n "$NAME" ] || NAME="$(basename "$(pwd)")"
 [ -n "$DESC" ] || DESC="TODO: short project description"
+
+# ADR prefix: a letter, then up to 9 letters or digits (ASCII). The default is the
+# first ASCII alphanumeric run of the name, upper-cased, at most 10 characters —
+# identical to the Python and PowerShell versions. LC_ALL=C keeps the ranges ASCII.
+is_valid_adr_prefix() {
+  local LC_ALL=C
+  [[ $1 =~ ^[A-Za-z][A-Za-z0-9]{0,9}$ ]]
+}
+default_adr_prefix() {
+  local LC_ALL=C word=""
+  if [[ $1 =~ [A-Za-z0-9]+ ]]; then word="${BASH_REMATCH[0]}"; fi
+  word="$(printf '%s' "$word" | LC_ALL=C tr '[:lower:]' '[:upper:]')"
+  word="${word:0:10}"
+  case "$word" in ""|[0-9]*) word="PROJ" ;; esac
+  printf '%s' "$word"
+}
+if [ -n "$ADR_PREFIX" ]; then
+  if ! is_valid_adr_prefix "$ADR_PREFIX"; then
+    echo "Invalid --adr-prefix: $ADR_PREFIX (expected a letter followed by up to 9 letters or digits)" >&2
+    exit 2
+  fi
+  ADR_PREFIX="$(printf '%s' "$ADR_PREFIX" | LC_ALL=C tr '[:lower:]' '[:upper:]')"
+else
+  ADR_PREFIX="$(default_adr_prefix "$NAME")"
+fi
 DATE="$(date +%Y-%m-%d)"
 YEAR="$(date +%Y)"
 
@@ -77,17 +107,19 @@ escape_sed() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g' -e '$!s/$/\\/'
 }
 render() {
-  local safe_name safe_desc safe_date safe_year safe_version
+  local safe_name safe_desc safe_date safe_year safe_version safe_adr
   safe_name="$(escape_sed "$NAME")"
   safe_desc="$(escape_sed "$DESC")"
   safe_date="$(escape_sed "$DATE")"
   safe_year="$(escape_sed "$YEAR")"
   safe_version="$(escape_sed "$VERSION")"
+  safe_adr="$(escape_sed "$ADR_PREFIX")"
   sed -e "s|__NAME__|${safe_name}|g" \
       -e "s|__DESC__|${safe_desc}|g" \
       -e "s|__DATE__|${safe_date}|g" \
       -e "s|__YEAR__|${safe_year}|g" \
-      -e "s|__VERSION__|${safe_version}|g"
+      -e "s|__VERSION__|${safe_version}|g" \
+      -e "s|__ADR_PREFIX__|${safe_adr}|g"
 }
 
 profile_rank() {
@@ -179,6 +211,52 @@ echo "No project checks defined yet"
 
 <!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
 TPL
+render <<'TPL' | write_file ".gitattributes"
+# Normalize line endings in the repository: LF everywhere (see .editorconfig).
+* text=auto eol=lf
+
+# Windows batch files need CRLF to run.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files: no line-ending conversion, no textual diff.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+TPL
+render <<'TPL' | write_file ".editorconfig"
+# https://editorconfig.org — matches .gitattributes: UTF-8, LF, final newline.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json,toml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[{Makefile,*.mk}]
+indent_style = tab
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# Initialized by init-repo-bootstrap __VERSION__ (__DATE__).
+TPL
 if profile_includes github; then
 render <<'TPL' | write_file ".github/CODEOWNERS"
 # TODO: replace @TODO-OWNER with real GitHub usernames or teams.
@@ -264,6 +342,58 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+TPL
+fi
+if profile_includes full; then
+render <<'TPL' | write_file "docs/README.md"
+# Documentation — __NAME__
+
+The only documentation root is `docs/`. This page is its map: section → what is inside →
+when to open it. Add a row when you add a section.
+
+| Section | What | When to open |
+|---|---|---|
+| [`adr/`](adr/README.md) | Architecture decision records and their registry | Before changing a past decision; when making a new one |
+
+## Conventions
+- Document header — a table `Status | Date | Related`. Status reflects reality:
+  `Draft`, `Blocked` (with the reason), `Ready`, `Accepted`, `Superseded`.
+- Procedures go in `docs/runbooks/`: when to apply, prerequisites, numbered idempotent
+  steps, abort criteria, rollback, escalation.
+- Requirements (PRD/SRS) only as real documents — no empty placeholders.
+- Plans, research and reviews from AI sessions are dated artifacts in `.ai/artifacts/`.
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
+TPL
+fi
+if profile_includes full; then
+render <<'TPL' | write_file "docs/adr/README.md"
+# Architecture decision records — __NAME__
+
+## Prefixes
+
+| Prefix | Repository |
+|---|---|
+| `__ADR_PREFIX__` | this repository |
+
+Add a row for each neighbouring repository whose ADRs you reference.
+
+## Rules
+- File: `docs/adr/__ADR_PREFIX__-NNNN-topic.md` — four digits, topic in lowercase Latin
+  letters and hyphens.
+- Reference in text, code and comments: `ADR __ADR_PREFIX__-0001`. Never a bare number:
+  it becomes ambiguous as soon as a neighbouring repository has its own decision 1.
+- Numbering is historical. A replaced decision gets `Superseded by __ADR_PREFIX__-NNNN`
+  and is not deleted.
+- Header: `Status | Date | Context | Related`; sections: Context → Options → Decision →
+  Consequences.
+
+## Registry
+
+| ADR | Status | Topic |
+|---|---|---|
+
+<!-- Initialized by init-repo-bootstrap __VERSION__ (__DATE__). -->
 TPL
 fi
 }
