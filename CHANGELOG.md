@@ -18,6 +18,14 @@ copies it into the scripts.
   (English messages) and `scripts/md_links.py`. README → "Keeping a repository tidy".
 - CI runs the checker and the link check on the repository and on a fresh AI +
   repo-bootstrap scaffold.
+- `check_layout.py` and `md_links.py` exit with code 2 and a one-line message when the path
+  is missing or not a git work tree (previously a Python traceback).
+
+### Changed
+
+- ADR prefix examples in help text and READMEs are neutral (`API`, `web-portal` → `WEB`).
+- CI actions: `actions/checkout` v5 → v7, `actions/upload-artifact` v5 → v7,
+  `actions/download-artifact` v5 → v8.
 
 ## [2.1.0] — 2026-11-04
 

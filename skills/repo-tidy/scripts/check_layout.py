@@ -5,7 +5,8 @@ Usage:
     python3 check_layout.py <repo> [<repo> ...]
 
 Errors (✗) break the tradition and fail the run; warnings (!) are worth a look but may
-be deliberate. Only git-tracked files are inspected. The rules are described in
+be deliberate. Exit 0 — clean, 1 — errors, 2 — a path is not a git work tree (it is
+skipped). Only git-tracked files are inspected. The rules are described in
 ../reference/standard.md.
 """
 
@@ -13,13 +14,13 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from md_links import EXIT_UNUSABLE, NotARepo, tracked_files  # noqa: E402
 from md_links import process as md_links_process  # noqa: E402
 
 AGENTS_SECTIONS = [rf"^## {n}\." for n in range(1, 8)]
@@ -59,9 +60,8 @@ class Report:
 
 
 def tracked(repo: Path) -> list[str]:
-    out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z"],
-                         capture_output=True, text=True, check=True).stdout
-    return [p for p in out.split("\0") if p]
+    """Git-tracked paths relative to the repository, POSIX-style; raises NotARepo."""
+    return [p.relative_to(repo).as_posix() for p in tracked_files(repo)]
 
 
 def read(repo: Path, rel: str) -> str | None:
@@ -267,9 +267,14 @@ def check(repo: Path) -> Report:
 
 def main() -> int:
     repos = [Path(a).resolve() for a in sys.argv[1:]] or [Path.cwd()]
-    failed = False
+    failed = unusable = False
     for repo in repos:
-        r = check(repo)
+        try:
+            r = check(repo)
+        except NotARepo as exc:
+            print(f"✗ {exc}", file=sys.stderr)
+            unusable = True
+            continue
         mark = "✗" if r.errors else "✓"
         print(f"{mark} {repo.name}: {len(r.errors)} errors, {len(r.warnings)} warnings")
         for e in r.errors:
@@ -277,6 +282,8 @@ def main() -> int:
         for w in r.warnings:
             print(f"  ! {w}")
         failed |= bool(r.errors)
+    if unusable:
+        return EXIT_UNUSABLE
     return 1 if failed else 0
 
 

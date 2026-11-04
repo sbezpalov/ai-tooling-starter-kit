@@ -5,6 +5,8 @@ Usage:
     python3 md_links.py <repo>            # report broken links, exit 1 if any
     python3 md_links.py <repo> --fix      # repair by unique basename, normalize paths
 
+Exit 2 when <repo> is not a git work tree (nothing is checked).
+
 A link is repaired only when exactly one tracked file has the target's basename;
 ambiguous or missing targets are reported and left alone. Repaired links are
 rewritten as the shortest relative path (``os.path.relpath``). Code fences,
@@ -26,11 +28,25 @@ FENCE_RE = re.compile(r"^\s*(```|~~~)")
 SKIP_PREFIXES = ("http://", "https://", "mailto:", "#", "tel:", "data:")
 
 
+EXIT_UNUSABLE = 2  # the path is not a git work tree: nothing was checked
+
+
+class NotARepo(Exception):
+    """The path is missing, is not a git work tree, or git is not installed."""
+
+
 def tracked_files(repo: Path) -> list[Path]:
-    out = subprocess.run(
-        ["git", "-C", str(repo), "ls-files", "-z"],
-        capture_output=True, text=True, check=True,
-    ).stdout
+    if not repo.is_dir():
+        raise NotARepo(f"{repo}: no such directory")
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(repo), "ls-files", "-z"],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except FileNotFoundError as exc:
+        raise NotARepo("git is not installed or not on PATH") from exc
+    except subprocess.CalledProcessError as exc:
+        raise NotARepo(f"{repo}: not a git repository (only tracked files are checked)") from exc
     return [repo / p for p in out.split("\0") if p]
 
 
@@ -112,7 +128,11 @@ def main() -> int:
     args = parser.parse_args()
     repo = args.repo.resolve()
 
-    files = tracked_files(repo)
+    try:
+        files = tracked_files(repo)
+    except NotARepo as exc:
+        print(f"✗ {exc}", file=sys.stderr)
+        return EXIT_UNUSABLE
     by_name: dict[str, list[Path]] = defaultdict(list)
     for f in files:
         by_name[f.name].append(f.resolve())
