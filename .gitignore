@@ -3,6 +3,8 @@
 !.env.example
 *.local
 .claude/settings.local.json
+.claude/worktrees/
+_to_delete/
 .DS_Store
 __pycache__/
 *.py[cod]

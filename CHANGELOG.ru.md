@@ -10,6 +10,18 @@ English: [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
 
+### Репозиторий (генерируемый вывод не меняется)
+
+- Приведён в порядок сверщиком раскладки `repo-tidy`. Собственный `AGENTS.md` репозитория
+  разбит на нумерованные разделы (Project, Stack, Structure, Status / current priority,
+  How to make changes, Security, Definition of Done, Tool layout); сами правила не менялись.
+- `.claude/settings.json` запрещает `Read(**/*.pem)` / `Read(**/*.key)` вместо `**.pem` /
+  `**.key`; в `.gitignore` добавлены `.claude/worktrees/` и `_to_delete/`; новый
+  `.editorconfig` в согласии с `.gitattributes`.
+- В `.ai/README.md` появился раздел специфики репозитория с индексом артефактов.
+- `.ai/artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md` перечисляет, где
+  генерируемая раскладка расходится с этой традицией. Генератор не меняется до решения владельца.
+
 ### Исправлено
 
 - **Перевод строки в `--desc` или `--name` ломал bash-скрипты.** Значение подставлялось прямо в

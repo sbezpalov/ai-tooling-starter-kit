@@ -6,8 +6,8 @@
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
-      "Read(**.pem)",
-      "Read(**.key)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
       "Read(**/.ssh/**)",
       "Read(**/.aws/**)",
       "Read(**/.kube/**)",

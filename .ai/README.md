@@ -19,3 +19,15 @@ settings. An artifact is a durable session result (plan, research, diff, task li
 from older kit versions.
 
 <!-- Initialized by init-ai-tooling 2.0.0 (2026-09-24). -->
+
+<!-- Below: repository-specific notes. -->
+
+## Artifacts in this repository
+
+| Artifact | What |
+|---|---|
+| [`2026-07-30-codex-support-plan.md`](artifacts/2026-07-30-codex-support-plan.md) | Pre-change plan for Codex support (shipped in 1.1.0) |
+| [`2026-11-04-generator-vs-repo-tidy-tradition.md`](artifacts/2026-11-04-generator-vs-repo-tidy-tradition.md) | Where the generated layout differs from the repo-tidy tradition; open product decisions |
+
+This repository is itself scaffolded by the kit (dogfood): `.claude/` and `.cursor/` hold
+no repository-specific commands, agents or rules yet.
